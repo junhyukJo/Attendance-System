@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>출석 정보 입력</title>
+</head>
+<body>
+	<main>
+		<h1>출석 정보 입력</h1>
+		<p>본인 정보를 입력한 뒤 출석 등록을 완료하세요.</p>
+		<form method="post" action="/member/attendance">
+			<label for="name">이름</label>
+			<input id="name" name="name" type="text" required maxlength="50" autocomplete="name">
+			<br>
+			<label for="birthDate">생년월일</label>
+			<input id="birthDate" name="birthDate" type="date" required>
+			<br>
+			<button type="submit">출석 등록</button>
+		</form>
+	</main>
+</body>
+</html>

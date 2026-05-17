@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>출석 등록 완료</title>
+</head>
+<body>
+	<main>
+		<h1>출석 등록 완료</h1>
+		<p>아래 정보로 출석 입력이 접수되었습니다.</p>
+		<p>
+			이름: <strong th:text="${name}">홍길동</strong>
+		</p>
+		<p>
+			생년월일: <strong th:text="${birthDate}">2000-01-01</strong>
+		</p>
+		<p>
+			<a href="/member">회원 출석 화면으로 돌아가기</a>
+		</p>
+	</main>
+</body>
+</html>
