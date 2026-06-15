@@ -4,6 +4,88 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>출석 정보 입력</title>
+	<style>
+		:root {
+			--bg-1: #f5fbf8;
+			--bg-2: #d7efe2;
+			--card: #ffffff;
+			--text: #14261f;
+			--muted: #4c6359;
+			--line: #deefe7;
+			--primary: #0d7d52;
+			--primary-dark: #095c3c;
+		}
+
+		* { box-sizing: border-box; }
+
+		body {
+			margin: 0;
+			min-height: 100vh;
+			display: grid;
+			place-items: center;
+			padding: 24px;
+			font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+			color: var(--text);
+			background:
+				radial-gradient(circle at 80% 10%, rgba(13, 125, 82, 0.2), transparent 35%),
+				linear-gradient(140deg, var(--bg-1), var(--bg-2));
+		}
+
+		main {
+			width: min(560px, 100%);
+			background: var(--card);
+			border: 1px solid var(--line);
+			border-radius: 18px;
+			padding: 30px;
+			box-shadow: 0 16px 34px rgba(16, 66, 48, 0.14);
+		}
+
+		h1 {
+			margin: 0 0 10px;
+			font-size: clamp(1.5rem, 2.4vw, 2rem);
+		}
+
+		p {
+			margin: 0 0 18px;
+			color: var(--muted);
+			line-height: 1.55;
+		}
+
+		form {
+			display: grid;
+			gap: 14px;
+		}
+
+		label {
+			font-weight: 600;
+			font-size: 0.95rem;
+		}
+
+		input {
+			height: 44px;
+			border: 1px solid #c8e4d8;
+			border-radius: 10px;
+			padding: 0 12px;
+			font-size: 1rem;
+		}
+
+		input:focus {
+			outline: 3px solid rgba(13, 125, 82, 0.2);
+			border-color: var(--primary);
+		}
+
+		button {
+			margin-top: 8px;
+			height: 46px;
+			border: 0;
+			border-radius: 10px;
+			color: #fff;
+			font-weight: 700;
+			font-size: 1rem;
+			background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+			cursor: pointer;
+		}
+	</style>
 </head>
 <body>
 	<main>
@@ -12,10 +94,8 @@
 		<form method="post" action="/member/attendance">
 			<label for="name">이름</label>
 			<input id="name" name="name" type="text" required maxlength="50" autocomplete="name">
-			<br>
 			<label for="birthDate">생년월일</label>
 			<input id="birthDate" name="birthDate" type="date" required>
-			<br>
 			<button type="submit">출석 등록</button>
 		</form>
 	</main>

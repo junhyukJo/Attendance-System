@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>마일리지 관리</title>
+	<style>
+		:root {
+			--page-top: #eef8f2;
+			--page-bottom: #cfe8da;
+			--panel: rgba(255, 255, 255, 0.94);
+			--panel-strong: #ffffff;
+			--line: #d8e8df;
+			--primary: #0d7d52;
+			--primary-dark: #095c3c;
+			--accent: #f29f05;
+			--muted: #5f766c;
+			--text: #152821;
+			--blue: #1664d3;
+		}
+
+		* { box-sizing: border-box; }
+
+		body {
+			margin: 0;
+			min-height: 100vh;
+			font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+			color: var(--text);
+			background:
+				radial-gradient(circle at 10% 12%, rgba(242, 159, 5, 0.16), transparent 28%),
+				radial-gradient(circle at 88% 18%, rgba(13, 125, 82, 0.2), transparent 30%),
+				linear-gradient(160deg, var(--page-top), var(--page-bottom));
+			padding: 28px;
+		}
+
+		.page {
+			width: min(1480px, 100%);
+			margin: 0 auto;
+			display: grid;
+			gap: 20px;
+		}
+
+		.hero {
+			background: linear-gradient(140deg, rgba(10, 96, 64, 0.96), rgba(7, 63, 43, 0.96));
+			border-radius: 24px;
+			padding: 28px 30px;
+			color: #f6fff9;
+			box-shadow: 0 22px 45px rgba(7, 51, 35, 0.2);
+		}
+
+		.hero-top {
+			display: flex;
+			justify-content: space-between;
+			gap: 18px;
+			align-items: center;
+			flex-wrap: wrap;
+		}
+
+		.badge {
+			display: inline-block;
+			padding: 7px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.12);
+			font-size: 0.82rem;
+			font-weight: 700;
+			letter-spacing: 0.04em;
+		}
+
+		h1 {
+			margin: 12px 0 8px;
+			font-size: clamp(2rem, 3vw, 2.7rem);
+		}
+
+		.hero p {
+			margin: 0;
+			color: rgba(246, 255, 249, 0.82);
+			line-height: 1.6;
+		}
+
+		.logout-form button {
+			height: 42px;
+			padding: 0 16px;
+			border-radius: 12px;
+			border: 1px solid rgba(255, 255, 255, 0.22);
+			background: rgba(255, 255, 255, 0.1);
+			color: #fff;
+			font-weight: 700;
+			cursor: pointer;
+		}
+
+		.panel {
+			background: var(--panel);
+			border: 1px solid rgba(255, 255, 255, 0.38);
+			border-radius: 22px;
+			padding: 22px;
+			backdrop-filter: blur(12px);
+			box-shadow: 0 16px 38px rgba(15, 58, 40, 0.1);
+		}
+
+		.toolbar {
+			display: grid;
+			grid-template-columns: 1fr auto;
+			gap: 16px;
+			align-items: end;
+		}
+
+		.filters {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(160px, 1fr));
+			gap: 14px;
+		}
+
+		.field {
+			display: grid;
+			gap: 7px;
+		}
+
+		.field label {
+			font-size: 0.9rem;
+			font-weight: 700;
+			color: var(--muted);
+		}
+
+		input, select {
+			height: 44px;
+			border: 1px solid #c8ded2;
+			border-radius: 12px;
+			padding: 0 12px;
+			font-size: 0.95rem;
+			background: #fff;
+		}
+
+		.actions {
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+		}
+
+		.btn {
+			height: 44px;
+			padding: 0 18px;
+			border: 0;
+			border-radius: 12px;
+			font-weight: 800;
+			cursor: pointer;
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		.btn-primary {
+			color: #fff;
+			background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+		}
+
+		.btn-secondary {
+			color: var(--primary-dark);
+			background: rgba(13, 125, 82, 0.1);
+		}
+
+		.table-wrap {
+			overflow: auto;
+			border: 1px solid var(--line);
+			border-radius: 18px;
+			background: var(--panel-strong);
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			min-width: 1380px;
+		}
+
+		thead th {
+			position: sticky;
+			top: 0;
+			background: #f2faf5;
+			z-index: 1;
+			font-size: 0.9rem;
+			font-weight: 800;
+			color: #315045;
+		}
+
+		th, td {
+			padding: 13px 12px;
+			border-bottom: 1px solid #ebf3ee;
+			text-align: left;
+			vertical-align: middle;
+		}
+
+		tbody tr.modified {
+			background: rgba(22, 100, 211, 0.05);
+		}
+
+		.status-chip {
+			display: inline-block;
+			padding: 6px 10px;
+			border-radius: 999px;
+			font-size: 0.83rem;
+			font-weight: 800;
+			color: transparent;
+		}
+
+		.status-chip.is-modified {
+			color: #ffffff;
+			background: var(--blue);
+		}
+
+		td input, td select {
+			width: 100%;
+			height: 40px;
+			font-size: 0.92rem;
+		}
+
+		.points-input {
+			text-align: right;
+		}
+
+		.helper {
+			margin-top: 12px;
+			font-size: 0.9rem;
+			color: var(--muted);
+		}
+
+		.modal-backdrop {
+			position: fixed;
+			inset: 0;
+			background: rgba(8, 30, 22, 0.45);
+			display: none;
+			align-items: center;
+			justify-content: center;
+			padding: 20px;
+		}
+
+		.modal-backdrop.open {
+			display: flex;
+		}
+
+		.modal {
+			width: min(420px, 100%);
+			background: #fff;
+			border-radius: 20px;
+			padding: 24px;
+			box-shadow: 0 24px 40px rgba(8, 33, 23, 0.24);
+		}
+
+		.modal h2 {
+			margin: 0 0 10px;
+			font-size: 1.35rem;
+		}
+
+		.modal p {
+			margin: 0 0 18px;
+			color: var(--muted);
+			line-height: 1.55;
+		}
+
+		.modal-actions {
+			display: flex;
+			justify-content: flex-end;
+			gap: 10px;
+		}
+
+		.modal-actions button {
+			height: 42px;
+			padding: 0 16px;
+			border-radius: 12px;
+			border: 0;
+			font-weight: 800;
+			cursor: pointer;
+		}
+
+		.modal-cancel {
+			background: #edf5f0;
+			color: #345246;
+		}
+
+		.modal-confirm {
+			background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+			color: #fff;
+		}
+
+		.empty {
+			padding: 30px;
+			text-align: center;
+			color: var(--muted);
+		}
+
+		@media (max-width: 1080px) {
+			.toolbar {
+				grid-template-columns: 1fr;
+			}
+
+			.filters {
+				grid-template-columns: 1fr;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="page">
+		<section class="hero">
+			<div class="hero-top">
+				<div>
+					<span class="badge">BADMINTON CLUB ADMIN</span>
+					<h1>회원 마일리지 관리</h1>
+					<p>관리자가 회원별 마일리지 적립과 차감을 한 화면에서 조회하고 저장할 수 있는 운영 콘솔입니다.</p>
+				</div>
+				<form class="logout-form" method="post" action="/admin/logout">
+					<button type="submit">로그아웃</button>
+				</form>
+			</div>
+		</section>
+
+		<section class="panel">
+			<form id="searchForm" method="get" action="/admin/mileage" class="toolbar">
+				<div class="filters">
+					<div class="field">
+						<label for="name">회원명</label>
+						<input id="name" name="name" type="text" th:value="${searchName}" placeholder="예: 조준혁">
+					</div>
+					<div class="field">
+						<label for="memberId">고유 ID</label>
+						<input id="memberId" name="memberId" type="text" th:value="${searchMemberId}" placeholder="예: member001">
+					</div>
+					<div class="field">
+						<label for="grade">급수</label>
+						<input id="grade" name="grade" type="text" th:value="${searchGrade}" placeholder="예: 구A">
+					</div>
+				</div>
+				<div class="actions">
+					<button id="saveButton" type="button" class="btn btn-primary">저장 (F2)</button>
+					<button id="searchButton" type="submit" class="btn btn-secondary">조회 (F4)</button>
+				</div>
+			</form>
+			<p class="helper">수정된 행은 좌측 상태 컬럼에 파란색으로 "수정" 표시가 나타납니다. 저장 전에는 실제 데이터가 반영되지 않습니다.</p>
+		</section>
+
+		<section class="panel">
+			<div class="table-wrap" th:if="${!#lists.isEmpty(members)}">
+				<table>
+					<thead>
+						<tr>
+							<th>상태</th>
+							<th>회원명</th>
+							<th>고유 ID</th>
+							<th>생년월일</th>
+							<th>급수</th>
+							<th>경고횟수</th>
+							<th>마일리지</th>
+							<th>변경구분</th>
+							<th>카테고리</th>
+							<th>점수</th>
+							<th>상세사유</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="member : ${members}" th:attr="data-member-id=${member.memberId}">
+							<td><span class="status-chip">수정</span></td>
+							<td th:text="${member.name}">홍길동</td>
+							<td th:text="${member.memberId}">member001</td>
+							<td th:text="${member.birthDate}">1990-01-01</td>
+							<td th:text="${member.grade}">구A</td>
+							<td th:text="${member.warn}">0.0</td>
+							<td th:text="${member.mileageScore}">120</td>
+							<td>
+								<select class="edit-field action-type" data-field="actionType">
+									<option value="">선택</option>
+									<option value="EARN">적립</option>
+									<option value="DEDUCT">차감</option>
+								</select>
+							</td>
+							<td>
+								<input class="edit-field category" data-field="category" type="text" maxlength="100" placeholder="예: 기타100">
+							</td>
+							<td>
+								<input class="edit-field points-input points" data-field="points" type="number" min="1" step="1" placeholder="0">
+							</td>
+							<td>
+								<input class="edit-field detail-reason" data-field="detailReason" type="text" maxlength="255" placeholder="예: 지인가입">
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="empty" th:if="${#lists.isEmpty(members)}">조회된 회원이 없습니다. 검색조건을 바꾸거나 회원 데이터를 먼저 등록해 주세요.</div>
+		</section>
+	</div>
+
+	<div id="confirmModal" class="modal-backdrop" aria-hidden="true">
+		<div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+			<h2 id="modalTitle">변경사항 저장</h2>
+			<p>선택한 회원들의 마일리지 변경사항을 저장하시겠습니까? 확인을 누른 경우에만 실제 데이터가 반영됩니다.</p>
+			<div class="modal-actions">
+				<button id="cancelModalButton" type="button" class="modal-cancel">취소</button>
+				<button id="confirmModalButton" type="button" class="modal-confirm">확인</button>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		const modal = document.getElementById("confirmModal");
+		const saveButton = document.getElementById("saveButton");
+		const confirmModalButton = document.getElementById("confirmModalButton");
+		const cancelModalButton = document.getElementById("cancelModalButton");
+		const searchForm = document.getElementById("searchForm");
+		const rows = Array.from(document.querySelectorAll("tbody tr"));
+
+		function updateRowState(row) {
+			const fields = row.querySelectorAll(".edit-field");
+			const modified = Array.from(fields).some((field) => field.value.trim() !== "");
+			row.classList.toggle("modified", modified);
+			row.querySelector(".status-chip").classList.toggle("is-modified", modified);
+		}
+
+		rows.forEach((row) => {
+			row.querySelectorAll(".edit-field").forEach((field) => {
+				field.addEventListener("input", () => updateRowState(row));
+				field.addEventListener("change", () => updateRowState(row));
+			});
+		});
+
+		function getModifiedChanges() {
+			return rows
+				.map((row) => {
+					const actionType = row.querySelector(".action-type").value.trim();
+					const category = row.querySelector(".category").value.trim();
+					const points = row.querySelector(".points").value.trim();
+					const detailReason = row.querySelector(".detail-reason").value.trim();
+					if (!actionType && !category && !points && !detailReason) {
+						return null;
+					}
+					return {
+						memberId: row.dataset.memberId,
+						actionType,
+						category,
+						points: points ? Number(points) : null,
+						detailReason
+					};
+				})
+				.filter((change) => change !== null);
+		}
+
+		function openModal() {
+			modal.classList.add("open");
+			modal.setAttribute("aria-hidden", "false");
+		}
+
+		function closeModal() {
+			modal.classList.remove("open");
+			modal.setAttribute("aria-hidden", "true");
+		}
+
+		saveButton?.addEventListener("click", () => {
+			const changes = getModifiedChanges();
+			if (changes.length === 0) {
+				window.alert("저장할 변경사항이 없습니다.");
+				return;
+			}
+			openModal();
+		});
+
+		cancelModalButton?.addEventListener("click", closeModal);
+		modal?.addEventListener("click", (event) => {
+			if (event.target === modal) {
+				closeModal();
+			}
+		});
+
+		confirmModalButton?.addEventListener("click", async () => {
+			const changes = getModifiedChanges();
+			try {
+				const response = await fetch("/admin/mileage/save", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify({ changes })
+				});
+				const payload = await response.json();
+				if (!response.ok) {
+					window.alert(payload.message || "저장 중 오류가 발생했습니다.");
+					return;
+				}
+				window.alert(payload.message || "변경사항이 저장되었습니다.");
+				closeModal();
+				window.location.reload();
+			}
+			catch (error) {
+				window.alert("저장 요청 중 오류가 발생했습니다.");
+			}
+		});
+
+		document.addEventListener("keydown", (event) => {
+			if (event.key === "F2") {
+				event.preventDefault();
+				saveButton?.click();
+			}
+			if (event.key === "F4") {
+				event.preventDefault();
+				searchForm?.requestSubmit();
+			}
+			if (event.key === "Escape" && modal.classList.contains("open")) {
+				closeModal();
+			}
+		});
+	</script>
+</body>
+</html>

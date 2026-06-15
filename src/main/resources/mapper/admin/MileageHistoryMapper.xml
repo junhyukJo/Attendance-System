@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.attendance.system.admin.mapper.MileageHistoryMapper">
+
+    <insert id="insert" parameterType="com.attendance.system.admin.domain.MileageHistory">
+        INSERT INTO mileage_history (
+            history_id,
+            member_id,
+            member_name,
+            action_type,
+            points,
+            category,
+            detail_reason,
+            before_mileage,
+            after_mileage,
+            created_by,
+            reg_dtm
+        ) VALUES (
+            #{historyId},
+            #{memberId},
+            #{memberName},
+            #{actionType},
+            #{points},
+            #{category},
+            #{detailReason},
+            #{beforeMileage},
+            #{afterMileage},
+            #{createdBy},
+            #{regDtm}
+        )
+    </insert>
+
+</mapper>

@@ -1,4 +1,4 @@
-package com.attendance.system.member;
+package com.attendance.system.member.controller;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

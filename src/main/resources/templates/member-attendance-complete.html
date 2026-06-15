@@ -4,20 +4,95 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>출석 등록 완료</title>
+	<style>
+		:root {
+			--bg-1: #f5fbf8;
+			--bg-2: #d7efe2;
+			--card: #ffffff;
+			--text: #14261f;
+			--muted: #4c6359;
+			--line: #deefe7;
+			--success: #0d7d52;
+		}
+
+		* { box-sizing: border-box; }
+
+		body {
+			margin: 0;
+			min-height: 100vh;
+			display: grid;
+			place-items: center;
+			padding: 24px;
+			font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+			color: var(--text);
+			background:
+				radial-gradient(circle at 20% 15%, rgba(242, 159, 5, 0.18), transparent 35%),
+				linear-gradient(140deg, var(--bg-1), var(--bg-2));
+		}
+
+		main {
+			width: min(620px, 100%);
+			background: var(--card);
+			border: 1px solid var(--line);
+			border-radius: 18px;
+			padding: 30px;
+			box-shadow: 0 16px 34px rgba(16, 66, 48, 0.14);
+		}
+
+		h1 {
+			margin: 0 0 10px;
+			font-size: clamp(1.5rem, 2.4vw, 2rem);
+		}
+
+		.desc {
+			margin: 0 0 18px;
+			color: var(--muted);
+			line-height: 1.55;
+		}
+
+		.status {
+			display: inline-block;
+			padding: 7px 12px;
+			border-radius: 999px;
+			background: rgba(13, 125, 82, 0.12);
+			color: var(--success);
+			font-weight: 700;
+			font-size: 0.86rem;
+			margin-bottom: 14px;
+		}
+
+		.info {
+			display: grid;
+			gap: 10px;
+			padding: 16px;
+			border-radius: 12px;
+			background: #f8fcfa;
+			border: 1px solid #e4f2eb;
+			margin-bottom: 18px;
+		}
+
+		.info p {
+			margin: 0;
+		}
+
+		a {
+			color: #0b6d48;
+			font-weight: 700;
+			text-decoration: none;
+		}
+	</style>
 </head>
 <body>
 	<main>
+		<span class="status">CHECK-IN COMPLETE</span>
 		<h1>출석 등록 완료</h1>
-		<p>아래 정보로 출석 입력이 접수되었습니다.</p>
-		<p>
-			이름: <strong th:text="${name}">홍길동</strong>
-		</p>
-		<p>
-			생년월일: <strong th:text="${birthDate}">2000-01-01</strong>
-		</p>
-		<p>
-			<a href="/member">회원 출석 화면으로 돌아가기</a>
-		</p>
+		<p class="desc">아래 정보로 오늘 출석이 정상 접수되었습니다.</p>
+		<section class="info">
+			<p>이름: <strong th:text="${name}">홍길동</strong></p>
+			<p>생년월일: <strong th:text="${birthDate}">2000-01-01</strong></p>
+			<p>저장 시각: <strong th:text="${savedAt}">2026-01-01T12:00:00</strong></p>
+		</section>
+		<p><a href="/member">회원 출석 화면으로 돌아가기</a></p>
 	</main>
 </body>
 </html>
