@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>정모 관리</title>
+	<style>
+		:root {
+			--page-top: #eef8f2;
+			--page-bottom: #cfe8da;
+			--panel: rgba(255, 255, 255, 0.94);
+			--panel-strong: #ffffff;
+			--line: #d8e8df;
+			--primary: #0d7d52;
+			--primary-dark: #095c3c;
+			--danger: #d64545;
+			--danger-dark: #b51f1f;
+			--muted: #5f766c;
+			--text: #152821;
+			--sidebar: rgba(9, 66, 45, 0.92);
+			--sidebar-line: rgba(255, 255, 255, 0.1);
+			--sidebar-text: rgba(245, 255, 249, 0.78);
+			--sidebar-active: #ffffff;
+		}
+
+		* { box-sizing: border-box; }
+		body {
+			margin: 0;
+			min-height: 100vh;
+			font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+			color: var(--text);
+			background:
+				radial-gradient(circle at 10% 12%, rgba(242, 159, 5, 0.16), transparent 28%),
+				radial-gradient(circle at 88% 18%, rgba(13, 125, 82, 0.2), transparent 30%),
+				linear-gradient(160deg, var(--page-top), var(--page-bottom));
+			padding: 24px;
+		}
+		body.sidebar-hidden .layout { grid-template-columns: 1fr; }
+		body.sidebar-hidden .sidebar { display: none; }
+		.layout {
+			width: min(1560px, 100%);
+			margin: 0 auto;
+			display: grid;
+			grid-template-columns: 240px minmax(0, 1fr);
+			gap: 20px;
+			align-items: start;
+		}
+		.sidebar {
+			position: sticky;
+			top: 24px;
+			background: var(--sidebar);
+			color: #fff;
+			border-radius: 24px;
+			padding: 24px 18px;
+			box-shadow: 0 22px 45px rgba(7, 51, 35, 0.22);
+		}
+		.sidebar-badge {
+			display: inline-block;
+			padding: 7px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.12);
+			font-size: 0.8rem;
+			font-weight: 700;
+			letter-spacing: 0.04em;
+		}
+		.sidebar h2 { margin: 14px 0 8px; font-size: 1.35rem; }
+		.sidebar p { margin: 0 0 18px; color: var(--sidebar-text); font-size: 0.93rem; line-height: 1.6; }
+		.menu { display: grid; gap: 8px; margin-bottom: 20px; }
+		.menu a {
+			display: block;
+			padding: 12px 14px;
+			border-radius: 14px;
+			color: var(--sidebar-text);
+			text-decoration: none;
+			font-weight: 700;
+			border: 1px solid transparent;
+		}
+		.menu a.active {
+			background: rgba(255, 255, 255, 0.14);
+			border-color: var(--sidebar-line);
+			color: var(--sidebar-active);
+		}
+		.logout-form { margin: 0; }
+		.logout-form button {
+			width: 100%;
+			height: 44px;
+			border-radius: 12px;
+			border: 1px solid rgba(255, 255, 255, 0.18);
+			background: rgba(255, 255, 255, 0.08);
+			color: #fff;
+			font-weight: 700;
+			cursor: pointer;
+		}
+		.content { display: grid; gap: 20px; min-width: 0; }
+		.topbar {
+			position: sticky;
+			top: 24px;
+			z-index: 5;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			gap: 12px;
+			padding: 14px 16px;
+			border-radius: 18px;
+			background: rgba(255, 255, 255, 0.82);
+			backdrop-filter: blur(12px);
+			border: 1px solid rgba(255, 255, 255, 0.38);
+			box-shadow: 0 14px 32px rgba(15, 58, 40, 0.1);
+		}
+		.topbar-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+		.nav-toggle, .btn {
+			height: 42px;
+			padding: 0 16px;
+			border-radius: 12px;
+			font-weight: 800;
+			cursor: pointer;
+		}
+		.nav-toggle { border: 1px solid #c8ded2; background: #fff; color: var(--primary-dark); }
+		.btn { border: 0; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+		.btn-primary { color: #fff; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
+		.btn-secondary { color: var(--primary-dark); background: rgba(13, 125, 82, 0.1); }
+		.btn-danger { color: #fff; background: linear-gradient(135deg, var(--danger), var(--danger-dark)); }
+		.hero {
+			background: linear-gradient(140deg, rgba(10, 96, 64, 0.96), rgba(7, 63, 43, 0.96));
+			border-radius: 24px;
+			padding: 28px 30px;
+			color: #f6fff9;
+			box-shadow: 0 22px 45px rgba(7, 51, 35, 0.2);
+		}
+		h1 { margin: 0 0 8px; font-size: clamp(2rem, 3vw, 2.7rem); }
+		.hero p { margin: 0; color: rgba(246, 255, 249, 0.82); line-height: 1.6; }
+		.panel {
+			background: var(--panel);
+			border: 1px solid rgba(255, 255, 255, 0.38);
+			border-radius: 22px;
+			padding: 22px;
+			backdrop-filter: blur(12px);
+			box-shadow: 0 16px 38px rgba(15, 58, 40, 0.1);
+			min-width: 0;
+		}
+		.toolbar, .create-grid, .detail-grid { display: grid; gap: 16px; }
+		.toolbar { grid-template-columns: 1fr auto; align-items: end; }
+		.filters { display: grid; grid-template-columns: repeat(2, minmax(160px, 1fr)); gap: 14px; }
+		.field { display: grid; gap: 7px; }
+		.field label { font-size: 0.9rem; font-weight: 700; color: var(--muted); }
+		input, select {
+			height: 44px;
+			border: 1px solid #c8ded2;
+			border-radius: 12px;
+			padding: 0 12px;
+			font-size: 0.95rem;
+			background: #fff;
+		}
+		.create-grid { grid-template-columns: repeat(4, minmax(150px, 1fr)) auto; align-items: end; }
+		.detail-grid { grid-template-columns: minmax(320px, 420px) minmax(0, 1fr); align-items: start; }
+		.list-card, .sub-panel { border: 1px solid var(--line); border-radius: 18px; background: var(--panel-strong); }
+		.list-card { overflow: hidden; }
+		.list-header, .sub-header {
+			padding: 16px 18px;
+			border-bottom: 1px solid #edf5ef;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			gap: 12px;
+		}
+		.jeongmo-list { display: grid; max-height: 620px; overflow: auto; }
+		.jeongmo-item {
+			display: grid;
+			gap: 8px;
+			padding: 18px;
+			text-decoration: none;
+			color: var(--text);
+			border-bottom: 1px solid #edf5ef;
+		}
+		.jeongmo-item.active { background: #eff9f3; }
+		.jeongmo-item:last-child { border-bottom: 0; }
+		.item-title { font-weight: 800; }
+		.item-meta { display: flex; gap: 8px; flex-wrap: wrap; color: var(--muted); font-size: 0.9rem; }
+		.chip {
+			padding: 7px 11px;
+			border-radius: 999px;
+			background: #f3fbf6;
+			border: 1px solid var(--line);
+			font-size: 0.85rem;
+			font-weight: 700;
+		}
+		.detail-stack, .sub-grid { display: grid; gap: 16px; min-width: 0; }
+		.summary-box {
+			display: grid;
+			gap: 10px;
+			padding: 18px;
+			border: 1px solid var(--line);
+			border-radius: 18px;
+			background: #f8fcf9;
+		}
+		.summary-meta { display: flex; gap: 10px; flex-wrap: wrap; }
+		.sub-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+		.table-wrap { overflow: auto; border-top: 1px solid #edf5ef; }
+		table { width: 100%; border-collapse: collapse; min-width: 620px; }
+		th, td {
+			padding: 12px;
+			border-bottom: 1px solid #ebf3ee;
+			text-align: left;
+			vertical-align: middle;
+			white-space: nowrap;
+		}
+		thead th {
+			position: sticky;
+			top: 0;
+			background: #f2faf5;
+			z-index: 1;
+			font-size: 0.9rem;
+			font-weight: 800;
+			color: #315045;
+		}
+		.actions-row { display: flex; gap: 10px; flex-wrap: wrap; padding: 16px 18px; }
+		.inline-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 16px 18px; border-top: 1px solid #edf5ef; }
+		.empty { padding: 30px; text-align: center; color: var(--muted); }
+		@media (max-width: 1280px) {
+			.detail-grid, .sub-grid, .create-grid, .toolbar, .filters { grid-template-columns: 1fr; }
+			.layout { grid-template-columns: 1fr; }
+			.sidebar { position: static; }
+		}
+	</style>
+</head>
+<body>
+	<div class="layout">
+		<aside class="sidebar">
+			<span class="sidebar-badge">ADMIN CONSOLE</span>
+			<h2>운영 메뉴</h2>
+			<p>정모를 추가하고, 정모별 출석필요인원과 실제 출석인원을 한 화면에서 비교 관리합니다.</p>
+			<nav class="menu">
+				<a href="/admin/mileage">회원 마일리지 관리</a>
+				<a href="/admin/mileage/history">마일리지 변경내역</a>
+				<a href="/admin/members">회원명단 관리</a>
+				<a href="/admin/attendance">정모 출석 조회</a>
+				<a class="active" href="/admin/jeongmos">정모 관리</a>
+			</nav>
+			<form class="logout-form" method="post" action="/admin/logout">
+				<button type="submit">로그아웃</button>
+			</form>
+		</aside>
+
+		<main class="content">
+			<section class="topbar">
+				<button id="navToggleButton" type="button" class="nav-toggle">메뉴 접기</button>
+				<div class="topbar-actions">
+					<button id="searchButton" type="button" class="btn btn-secondary">조회 (F4)</button>
+				</div>
+			</section>
+
+			<section class="hero">
+				<h1>정모 관리</h1>
+				<p>정모 목록을 먼저 확인하고, 선택한 정모의 출석필요인원과 실제출석인원을 한눈에 비교할 수 있습니다.</p>
+			</section>
+
+			<section class="panel">
+				<form id="searchForm" method="get" action="/admin/jeongmos" class="toolbar">
+					<div class="filters">
+						<div class="field">
+							<label for="searchJeongmoDate">정모 날짜</label>
+							<input id="searchJeongmoDate" name="jeongmoDate" type="date" th:value="${searchJeongmoDate}">
+						</div>
+						<div class="field">
+							<label for="searchPlace">장소</label>
+							<input id="searchPlace" name="place" type="text" th:value="${searchPlace}" placeholder="예: 강남스포츠문화센터">
+						</div>
+					</div>
+					<div></div>
+				</form>
+			</section>
+
+			<section class="panel">
+				<div class="create-grid">
+					<div class="field"><label for="newJeongmoDate">정모 날짜</label><input id="newJeongmoDate" type="date"></div>
+					<div class="field"><label for="newStartTime">시작 시간</label><input id="newStartTime" type="time"></div>
+					<div class="field"><label for="newEndTime">종료 시간</label><input id="newEndTime" type="time"></div>
+					<div class="field"><label for="newPlace">장소</label><input id="newPlace" type="text" placeholder="예: 강남스포츠문화센터"></div>
+					<button id="createJeongmoButton" type="button" class="btn btn-primary">정모 추가</button>
+				</div>
+			</section>
+
+			<section class="detail-grid">
+				<section class="list-card">
+					<div class="list-header"><strong>정모 리스트</strong><span class="chip" th:text="'총 ' + ${#lists.size(jeongmos)} + '건'">총 0건</span></div>
+					<div class="jeongmo-list" th:if="${!#lists.isEmpty(jeongmos)}">
+						<a th:each="jeongmo : ${jeongmos}" th:href="@{/admin/jeongmos(jeongmoDate=${searchJeongmoDate},place=${searchPlace},selectedJeongmoId=${jeongmo.jeongmoId})}" class="jeongmo-item" th:classappend="${selectedJeongmo != null and selectedJeongmo.jeongmoId == jeongmo.jeongmoId} ? ' active'">
+							<div class="item-title" th:text="${#temporals.format(jeongmo.jeongmoDate, 'M/d') + ' ' + #temporals.format(jeongmo.startTime, 'HH:mm') + ' - ' + #temporals.format(jeongmo.endTime, 'HH:mm')}">6/25 19:00 - 22:00</div>
+							<div th:text="${jeongmo.place}">강남스포츠문화센터</div>
+							<div class="item-meta">
+								<span class="chip" th:text="'정모ID ' + ${jeongmo.jeongmoId}">정모ID J0001</span>
+								<span class="chip" th:text="'필요 ' + ${jeongmo.requiredCount} + '명'">필요 0명</span>
+								<span class="chip" th:text="'출석 ' + ${jeongmo.actualCount} + '명'">출석 0명</span>
+							</div>
+						</a>
+					</div>
+					<div class="empty" th:if="${#lists.isEmpty(jeongmos)}">등록된 정모가 없습니다.</div>
+				</section>
+
+				<section class="detail-stack">
+					<div class="summary-box" th:if="${selectedJeongmo != null}">
+						<strong th:text="'선택 정모 · ' + ${selectedJeongmo.jeongmoId}">선택 정모 · J0001</strong>
+						<div th:text="${#temporals.format(selectedJeongmo.jeongmoDate, 'yyyy-MM-dd') + ' / ' + #temporals.format(selectedJeongmo.startTime, 'HH:mm') + ' - ' + #temporals.format(selectedJeongmo.endTime, 'HH:mm')}">2026-06-25 / 19:00 - 22:00</div>
+						<div th:text="${selectedJeongmo.place}">강남스포츠문화센터</div>
+						<div class="summary-meta">
+							<span class="chip" th:text="'출석필요인원 ' + ${selectedJeongmo.requiredCount} + '명'">출석필요인원 0명</span>
+							<span class="chip" th:text="'실제출석인원 ' + ${selectedJeongmo.actualCount} + '명'">실제출석인원 0명</span>
+							<span class="chip" th:text="'/member/attendance/new?jeongmoId=' + ${selectedJeongmo.jeongmoId}">출석 링크</span>
+						</div>
+						<div><button id="deleteJeongmoButton" type="button" class="btn btn-danger">정모 삭제</button></div>
+					</div>
+					<div class="empty" th:if="${selectedJeongmo == null}">왼쪽 정모 리스트에서 하나를 선택하면 상세 내용을 볼 수 있습니다.</div>
+
+					<div class="sub-grid" th:if="${selectedJeongmo != null}">
+						<section class="sub-panel">
+							<div class="sub-header"><strong>출석필요인원</strong><span class="chip" th:text="${#lists.size(requiredMembers)} + '명'">0명</span></div>
+							<div class="inline-form">
+								<select id="requiredMemberSelect">
+									<option value="">회원 선택</option>
+									<option th:each="member : ${memberOptions}" th:value="${member.memberId}" th:text="${member.name + ' / ' + member.memberId}">홍길동 / U0001</option>
+								</select>
+								<button id="addRequiredMemberButton" type="button" class="btn btn-primary">회원 추가</button>
+							</div>
+							<div class="actions-row"><button id="deleteRequiredMembersButton" type="button" class="btn btn-danger">선택 삭제</button></div>
+							<div class="table-wrap" th:if="${!#lists.isEmpty(requiredMembers)}">
+								<table>
+									<thead><tr><th><input id="toggleRequiredMembers" type="checkbox"></th><th>고유 ID</th><th>회원명</th><th>등급</th><th>생년월일</th></tr></thead>
+									<tbody>
+										<tr th:each="member : ${requiredMembers}" th:attr="data-member-id=${member.memberId}">
+											<td><input type="checkbox" class="required-member-checkbox"></td>
+											<td th:text="${member.memberId}">U0001</td>
+											<td th:text="${member.name}">홍길동</td>
+											<td th:text="${member.grade == null || member.grade.isBlank() ? '-' : member.grade}">구A</td>
+											<td th:text="${member.birthDate == null ? '-' : member.birthDate}">1994-05-10</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div class="empty" th:if="${#lists.isEmpty(requiredMembers)}">출석필요인원이 아직 없습니다.</div>
+						</section>
+
+						<section class="sub-panel">
+							<div class="sub-header"><strong>실제출석인원</strong><span class="chip" th:text="${#lists.size(actualAttendances)} + '명'">0명</span></div>
+							<div class="table-wrap" th:if="${!#lists.isEmpty(actualAttendances)}">
+								<table>
+									<thead><tr><th>출석시간</th><th>고유 ID</th><th>회원명</th><th>생년월일</th></tr></thead>
+									<tbody>
+										<tr th:each="attendance : ${actualAttendances}">
+											<td th:text="${#temporals.format(attendance.regDtm, 'yyyy-MM-dd HH:mm:ss')}">2026-06-27 19:05:00</td>
+											<td th:text="${attendance.memberId == null || attendance.memberId.isBlank() ? '-' : attendance.memberId}">U0001</td>
+											<td th:text="${attendance.name}">홍길동</td>
+											<td th:text="${attendance.birthDate}">1994-05-10</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div class="empty" th:if="${#lists.isEmpty(actualAttendances)}">실제 출석 내역이 아직 없습니다.</div>
+						</section>
+					</div>
+				</section>
+			</section>
+		</main>
+	</div>
+
+	<script th:inline="javascript">
+		const selectedJeongmoId = [[${selectedJeongmo != null ? '\'' + selectedJeongmo.jeongmoId + '\'' : 'null'}]];
+		const searchButton = document.getElementById("searchButton");
+		const searchForm = document.getElementById("searchForm");
+		const navToggleButton = document.getElementById("navToggleButton");
+		const createJeongmoButton = document.getElementById("createJeongmoButton");
+		const deleteJeongmoButton = document.getElementById("deleteJeongmoButton");
+		const addRequiredMemberButton = document.getElementById("addRequiredMemberButton");
+		const deleteRequiredMembersButton = document.getElementById("deleteRequiredMembersButton");
+		const toggleRequiredMembers = document.getElementById("toggleRequiredMembers");
+
+		function syncSidebarToggleLabel() {
+			navToggleButton.textContent = document.body.classList.contains("sidebar-hidden") ? "메뉴 열기" : "메뉴 접기";
+		}
+		if (window.localStorage.getItem("adminSidebarHidden") === "true") {
+			document.body.classList.add("sidebar-hidden");
+		}
+		syncSidebarToggleLabel();
+		navToggleButton?.addEventListener("click", () => {
+			document.body.classList.toggle("sidebar-hidden");
+			window.localStorage.setItem("adminSidebarHidden", String(document.body.classList.contains("sidebar-hidden")));
+			syncSidebarToggleLabel();
+		});
+		searchButton?.addEventListener("click", () => searchForm?.requestSubmit());
+		document.addEventListener("keydown", (event) => {
+			if (event.key === "F4") {
+				event.preventDefault();
+				searchButton?.click();
+			}
+		});
+
+		async function sendRequest(url, payload) {
+			const response = await fetch(url, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload)
+			});
+			const result = await response.json();
+			if (!response.ok) {
+				throw new Error(result.message || "요청 처리에 실패했습니다.");
+			}
+			return result;
+		}
+
+		function reloadWithSelection(jeongmoId) {
+			const url = new URL(window.location.href);
+			if (jeongmoId) {
+				url.searchParams.set("selectedJeongmoId", jeongmoId);
+			} else {
+				url.searchParams.delete("selectedJeongmoId");
+			}
+			window.location.href = url.toString();
+		}
+
+		createJeongmoButton?.addEventListener("click", async () => {
+			try {
+				const result = await sendRequest("/admin/jeongmos/create", {
+					jeongmoDate: document.getElementById("newJeongmoDate").value,
+					startTime: document.getElementById("newStartTime").value,
+					endTime: document.getElementById("newEndTime").value,
+					place: document.getElementById("newPlace").value
+				});
+				window.alert(result.message);
+				reloadWithSelection(result.jeongmoId);
+			} catch (error) {
+				window.alert(error.message);
+			}
+		});
+
+		deleteJeongmoButton?.addEventListener("click", async () => {
+			if (!selectedJeongmoId) {
+				window.alert("삭제할 정모를 선택해 주세요.");
+				return;
+			}
+			if (!window.confirm("선택한 정모를 삭제하시겠습니까? 연결된 출석필요인원은 함께 제거되고, 기존 출석내역의 정모 연결은 해제됩니다.")) {
+				return;
+			}
+			try {
+				const result = await sendRequest("/admin/jeongmos/delete", { jeongmoId: selectedJeongmoId });
+				window.alert(result.message);
+				reloadWithSelection(null);
+			} catch (error) {
+				window.alert(error.message);
+			}
+		});
+
+		addRequiredMemberButton?.addEventListener("click", async () => {
+			const memberId = document.getElementById("requiredMemberSelect")?.value;
+			if (!selectedJeongmoId) {
+				window.alert("정모를 먼저 선택해 주세요.");
+				return;
+			}
+			if (!memberId) {
+				window.alert("추가할 회원을 선택해 주세요.");
+				return;
+			}
+			try {
+				const result = await sendRequest("/admin/jeongmos/required-members/add", { jeongmoId: selectedJeongmoId, memberId });
+				window.alert(result.message);
+				reloadWithSelection(selectedJeongmoId);
+			} catch (error) {
+				window.alert(error.message);
+			}
+		});
+
+		toggleRequiredMembers?.addEventListener("change", (event) => {
+			document.querySelectorAll(".required-member-checkbox").forEach((checkbox) => {
+				checkbox.checked = event.target.checked;
+			});
+		});
+
+		deleteRequiredMembersButton?.addEventListener("click", async () => {
+			if (!selectedJeongmoId) {
+				window.alert("정모를 먼저 선택해 주세요.");
+				return;
+			}
+			const memberIds = Array.from(document.querySelectorAll(".required-member-checkbox:checked"))
+				.map((checkbox) => checkbox.closest("tr")?.dataset.memberId)
+				.filter(Boolean);
+			if (memberIds.length === 0) {
+				window.alert("삭제할 출석필요인원을 선택해 주세요.");
+				return;
+			}
+			if (!window.confirm("선택한 출석필요인원을 삭제하시겠습니까?")) {
+				return;
+			}
+			try {
+				const result = await sendRequest("/admin/jeongmos/required-members/delete", { jeongmoId: selectedJeongmoId, memberIds });
+				window.alert(result.message);
+				reloadWithSelection(selectedJeongmoId);
+			} catch (error) {
+				window.alert(error.message);
+			}
+		});
+	</script>
+</body>
+</html>

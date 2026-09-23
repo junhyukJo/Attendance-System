@@ -46,11 +46,47 @@
         WHERE member_id = #{id}
     </select>
 
+    <select id="findByNameAndBirthDate" resultType="com.attendance.system.admin.domain.Member">
+        SELECT
+            member_id AS member_id,
+            name,
+            active,
+            birth_date,
+            grade,
+            warn,
+            mileage_score,
+            reg_dtm,
+            chg_dtm
+        FROM members
+        WHERE name = #{name}
+          AND birth_date = #{birthDate}
+        ORDER BY member_id ASC
+        LIMIT 1
+    </select>
+
+    <select id="findAllMemberIds" resultType="string">
+        SELECT member_id
+        FROM members
+        ORDER BY member_id ASC
+    </select>
+
     <update id="updateMileage">
         UPDATE members
         SET mileage_score = #{mileageScore},
             chg_dtm = CURRENT_TIMESTAMP
         WHERE member_id = #{id}
+    </update>
+
+    <update id="updateMember" parameterType="com.attendance.system.admin.domain.Member">
+        UPDATE members
+        SET name = #{name},
+            active = #{active},
+            birth_date = #{birthDate},
+            grade = #{grade},
+            warn = #{warn},
+            mileage_score = #{mileageScore},
+            chg_dtm = CURRENT_TIMESTAMP
+        WHERE member_id = #{memberId}
     </update>
 
     <insert id="insert" parameterType="com.attendance.system.admin.domain.Member">
@@ -76,5 +112,10 @@
             #{chgDtm}
         )
     </insert>
+
+    <delete id="deleteById" parameterType="string">
+        DELETE FROM members
+        WHERE member_id = #{id}
+    </delete>
 
 </mapper>

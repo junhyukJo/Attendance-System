@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.attendance.system.admin.mapper.JeongmoMapper">
+
+    <select id="findJeongmos" parameterType="com.attendance.system.admin.dto.AdminJeongmoSearchCondition"
+            resultType="com.attendance.system.admin.domain.Jeongmo">
+        SELECT
+            j.jeongmo_id,
+            j.jeongmo_date,
+            j.start_time,
+            j.end_time,
+            j.place,
+            j.reg_dtm,
+            j.chg_dtm,
+            (SELECT COUNT(*) FROM jeongmo_required_members r WHERE r.jeongmo_id = j.jeongmo_id) AS required_count,
+            (SELECT COUNT(*) FROM attendance_records a WHERE a.jeongmo_id = j.jeongmo_id) AS actual_count
+        FROM jeongmos j
+        <where>
+            <if test="jeongmoDate != null">
+                AND j.jeongmo_date = #{jeongmoDate}
+            </if>
+            <if test="place != null and place != ''">
+                AND UPPER(j.place) LIKE CONCAT('%', UPPER(#{place}), '%')
+            </if>
+        </where>
+        ORDER BY j.jeongmo_date DESC, j.start_time DESC, j.place ASC, j.jeongmo_id DESC
+    </select>
+
+    <select id="findById" parameterType="string" resultType="com.attendance.system.admin.domain.Jeongmo">
+        SELECT
+            jeongmo_id,
+            jeongmo_date,
+            start_time,
+            end_time,
+            place,
+            reg_dtm,
+            chg_dtm,
+            (SELECT COUNT(*) FROM jeongmo_required_members r WHERE r.jeongmo_id = jeongmos.jeongmo_id) AS required_count,
+            (SELECT COUNT(*) FROM attendance_records a WHERE a.jeongmo_id = jeongmos.jeongmo_id) AS actual_count
+        FROM jeongmos
+        WHERE jeongmo_id = #{jeongmoId}
+    </select>
+
+    <select id="findAllJeongmoIds" resultType="string">
+        SELECT jeongmo_id
+        FROM jeongmos
+        ORDER BY jeongmo_id ASC
+    </select>
+
+    <insert id="insert" parameterType="com.attendance.system.admin.domain.Jeongmo">
+        INSERT INTO jeongmos (
+            jeongmo_id,
+            jeongmo_date,
+            start_time,
+            end_time,
+            place,
+            reg_dtm,
+            chg_dtm
+        ) VALUES (
+            #{jeongmoId},
+            #{jeongmoDate},
+            #{startTime},
+            #{endTime},
+            #{place},
+            #{regDtm},
+            #{chgDtm}
+        )
+    </insert>
+
+    <delete id="deleteById" parameterType="string">
+        DELETE FROM jeongmos
+        WHERE jeongmo_id = #{jeongmoId}
+    </delete>
+
+</mapper>

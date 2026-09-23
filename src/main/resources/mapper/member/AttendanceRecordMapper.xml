@@ -8,15 +8,25 @@
         INSERT INTO attendance_records (
             id,
             member_id,
+            jeongmo_id,
             name,
             birth_date,
+            jeongmo_date,
+            jeongmo_start_time,
+            jeongmo_end_time,
+            jeongmo_place,
             reg_dtm,
             chg_dtm
         ) VALUES (
             #{id},
             #{memberId},
+            #{jeongmoId},
             #{name},
             #{birthDate},
+            #{jeongmoDate},
+            #{jeongmoStartTime},
+            #{jeongmoEndTime},
+            #{jeongmoPlace},
             #{regDtm},
             #{chgDtm}
         )
@@ -26,12 +36,90 @@
         SELECT
             id,
             member_id,
+            jeongmo_id,
             name,
             birth_date,
+            jeongmo_date,
+            jeongmo_start_time,
+            jeongmo_end_time,
+            jeongmo_place,
             reg_dtm,
             chg_dtm
         FROM attendance_records
         WHERE id = #{id}
     </select>
+
+    <select id="findAttendances" parameterType="com.attendance.system.admin.dto.AdminAttendanceSearchCondition"
+            resultType="com.attendance.system.member.domain.AttendanceRecord">
+        SELECT
+            id,
+            member_id,
+            jeongmo_id,
+            name,
+            birth_date,
+            jeongmo_date,
+            jeongmo_start_time,
+            jeongmo_end_time,
+            jeongmo_place,
+            reg_dtm,
+            chg_dtm
+        FROM attendance_records
+        <where>
+            <if test="jeongmoDate != null">
+                AND jeongmo_date = #{jeongmoDate}
+            </if>
+            <if test="jeongmoStartTime != null">
+                AND jeongmo_start_time = #{jeongmoStartTime}
+            </if>
+            <if test="jeongmoEndTime != null">
+                AND jeongmo_end_time = #{jeongmoEndTime}
+            </if>
+            <if test="jeongmoPlace != null and jeongmoPlace != ''">
+                AND UPPER(jeongmo_place) = UPPER(#{jeongmoPlace})
+            </if>
+        </where>
+        ORDER BY reg_dtm ASC, id ASC
+    </select>
+
+    <select id="findByJeongmoId" parameterType="string" resultType="com.attendance.system.member.domain.AttendanceRecord">
+        SELECT
+            id,
+            member_id,
+            jeongmo_id,
+            name,
+            birth_date,
+            jeongmo_date,
+            jeongmo_start_time,
+            jeongmo_end_time,
+            jeongmo_place,
+            reg_dtm,
+            chg_dtm
+        FROM attendance_records
+        WHERE jeongmo_id = #{jeongmoId}
+        ORDER BY reg_dtm ASC, id ASC
+    </select>
+
+    <update id="linkToJeongmo">
+        UPDATE attendance_records
+        SET jeongmo_id = #{jeongmoId},
+            chg_dtm = CURRENT_TIMESTAMP
+        WHERE jeongmo_id IS NULL
+          AND jeongmo_date = #{jeongmoDate}
+          AND jeongmo_start_time = #{jeongmoStartTime}
+          AND jeongmo_end_time = #{jeongmoEndTime}
+          AND jeongmo_place = #{jeongmoPlace}
+    </update>
+
+    <update id="clearJeongmoId" parameterType="string">
+        UPDATE attendance_records
+        SET jeongmo_id = NULL,
+            chg_dtm = CURRENT_TIMESTAMP
+        WHERE jeongmo_id = #{jeongmoId}
+    </update>
+
+    <delete id="deleteByMemberId" parameterType="string">
+        DELETE FROM attendance_records
+        WHERE member_id = #{memberId}
+    </delete>
 
 </mapper>

@@ -11,6 +11,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 public class AdminAuthController {
 
+	private final AdminCredentials adminCredentials;
+
+	public AdminAuthController(AdminCredentials adminCredentials) {
+		this.adminCredentials = adminCredentials;
+	}
+
 	@GetMapping("/admin/login")
 	public String loginPage(HttpSession session) {
 		if (Boolean.TRUE.equals(session.getAttribute(AdminCredentials.SESSION_KEY))) {
@@ -26,7 +32,7 @@ public class AdminAuthController {
 			HttpSession session,
 			RedirectAttributes redirectAttributes
 	) {
-		if (AdminCredentials.ADMIN_ID.equals(adminId) && AdminCredentials.ADMIN_PASSWORD.equals(password)) {
+		if (adminCredentials.matches(adminId, password)) {
 			session.setAttribute(AdminCredentials.SESSION_KEY, true);
 			return "redirect:/admin/mileage";
 		}

@@ -2,7 +2,10 @@ package com.attendance.system.config;
 
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -18,7 +21,10 @@ public class SchemaMigrationRunner implements ApplicationRunner {
 	public void run(ApplicationArguments args) {
 		renameLegacyMemberIdColumn();
 		ensureMemberColumns();
+		ensureJeongmoTables();
 		ensureAttendanceMemberColumn();
+		removeGarbageMembers();
+		seedMembers();
 	}
 
 	private void renameLegacyMemberIdColumn() {
@@ -42,6 +48,57 @@ public class SchemaMigrationRunner implements ApplicationRunner {
 
 	private void ensureAttendanceMemberColumn() {
 		executeIfMissing("attendance_records", "member_id", "ALTER TABLE attendance_records ADD COLUMN member_id VARCHAR(50)");
+		executeIfMissing("attendance_records", "jeongmo_id", "ALTER TABLE attendance_records ADD COLUMN jeongmo_id VARCHAR(50)");
+		executeIfMissing("attendance_records", "jeongmo_date", "ALTER TABLE attendance_records ADD COLUMN jeongmo_date DATE");
+		executeIfMissing("attendance_records", "jeongmo_start_time", "ALTER TABLE attendance_records ADD COLUMN jeongmo_start_time TIME");
+		executeIfMissing("attendance_records", "jeongmo_end_time", "ALTER TABLE attendance_records ADD COLUMN jeongmo_end_time TIME");
+		executeIfMissing("attendance_records", "jeongmo_place", "ALTER TABLE attendance_records ADD COLUMN jeongmo_place VARCHAR(120)");
+	}
+
+	private void ensureJeongmoTables() {
+		jdbcTemplate.execute(
+				"""
+				CREATE TABLE IF NOT EXISTS jeongmos (
+				    jeongmo_id VARCHAR(50) PRIMARY KEY,
+				    jeongmo_date DATE NOT NULL,
+				    start_time TIME NOT NULL,
+				    end_time TIME NOT NULL,
+				    place VARCHAR(120) NOT NULL,
+				    reg_dtm TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+				    chg_dtm TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+				)
+				"""
+		);
+		jdbcTemplate.execute(
+				"""
+				CREATE TABLE IF NOT EXISTS jeongmo_required_members (
+				    jeongmo_id VARCHAR(50) NOT NULL,
+				    member_id VARCHAR(50) NOT NULL,
+				    reg_dtm TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+				    PRIMARY KEY (jeongmo_id, member_id)
+				)
+				"""
+		);
+		executeIfMissing("jeongmo_required_members", "reg_dtm", "ALTER TABLE jeongmo_required_members ADD COLUMN reg_dtm TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP");
+	}
+
+	private void removeGarbageMembers() {
+		jdbcTemplate.update("DELETE FROM mileage_history WHERE member_id LIKE 'U4%'");
+		jdbcTemplate.update("DELETE FROM attendance_records WHERE member_id LIKE 'U4%'");
+		jdbcTemplate.update("DELETE FROM members WHERE member_id LIKE 'U4%'");
+	}
+
+	private void seedMembers() {
+		if (!isPostgreSql()) {
+			return;
+		}
+		ResourceDatabasePopulator populator = new ResourceDatabasePopulator(new ClassPathResource("db/data-members.sql"));
+		populator.execute(jdbcTemplate.getDataSource());
+	}
+
+	private boolean isPostgreSql() {
+		String databaseProductName = jdbcTemplate.execute((ConnectionCallback<String>) connection -> connection.getMetaData().getDatabaseProductName());
+		return databaseProductName != null && databaseProductName.toLowerCase().contains("postgresql");
 	}
 
 	private void executeIfMissing(String tableName, String columnName, String sql) {

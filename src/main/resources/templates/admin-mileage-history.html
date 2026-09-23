@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>마일리지 변경내역</title>
+	<style>
+		:root {
+			--page-top: #eef8f2;
+			--page-bottom: #cfe8da;
+			--panel: rgba(255, 255, 255, 0.94);
+			--panel-strong: #ffffff;
+			--line: #d8e8df;
+			--primary: #0d7d52;
+			--primary-dark: #095c3c;
+			--muted: #5f766c;
+			--text: #152821;
+			--earn: #1664d3;
+			--deduct: #d94343;
+			--sidebar: rgba(9, 66, 45, 0.92);
+			--sidebar-line: rgba(255, 255, 255, 0.1);
+			--sidebar-text: rgba(245, 255, 249, 0.78);
+			--sidebar-active: #ffffff;
+		}
+
+		* { box-sizing: border-box; }
+
+		body {
+			margin: 0;
+			min-height: 100vh;
+			font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+			color: var(--text);
+			background:
+				radial-gradient(circle at 10% 12%, rgba(242, 159, 5, 0.16), transparent 28%),
+				radial-gradient(circle at 88% 18%, rgba(13, 125, 82, 0.2), transparent 30%),
+				linear-gradient(160deg, var(--page-top), var(--page-bottom));
+			padding: 24px;
+		}
+
+		body.sidebar-hidden .layout {
+			grid-template-columns: 1fr;
+		}
+
+		body.sidebar-hidden .sidebar {
+			display: none;
+		}
+
+		.layout {
+			width: min(1560px, 100%);
+			margin: 0 auto;
+			display: grid;
+			grid-template-columns: 240px minmax(0, 1fr);
+			gap: 20px;
+			align-items: start;
+		}
+
+		.sidebar {
+			position: sticky;
+			top: 24px;
+			background: var(--sidebar);
+			color: #fff;
+			border-radius: 24px;
+			padding: 24px 18px;
+			box-shadow: 0 22px 45px rgba(7, 51, 35, 0.22);
+		}
+
+		.sidebar-badge {
+			display: inline-block;
+			padding: 7px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.12);
+			font-size: 0.8rem;
+			font-weight: 700;
+			letter-spacing: 0.04em;
+		}
+
+		.sidebar h2 {
+			margin: 14px 0 8px;
+			font-size: 1.35rem;
+		}
+
+		.sidebar p {
+			margin: 0 0 18px;
+			color: var(--sidebar-text);
+			font-size: 0.93rem;
+			line-height: 1.6;
+		}
+
+		.menu {
+			display: grid;
+			gap: 8px;
+			margin-bottom: 20px;
+		}
+
+		.menu a {
+			display: block;
+			padding: 12px 14px;
+			border-radius: 14px;
+			color: var(--sidebar-text);
+			text-decoration: none;
+			font-weight: 700;
+			border: 1px solid transparent;
+		}
+
+		.menu a.active {
+			background: rgba(255, 255, 255, 0.14);
+			border-color: var(--sidebar-line);
+			color: var(--sidebar-active);
+		}
+
+		.menu a:hover {
+			background: rgba(255, 255, 255, 0.08);
+		}
+
+		.logout-form {
+			margin: 0;
+		}
+
+		.logout-form button {
+			width: 100%;
+			height: 44px;
+			border-radius: 12px;
+			border: 1px solid rgba(255, 255, 255, 0.18);
+			background: rgba(255, 255, 255, 0.08);
+			color: #fff;
+			font-weight: 700;
+			cursor: pointer;
+		}
+
+		.content {
+			display: grid;
+			gap: 20px;
+		}
+
+		.topbar {
+			position: sticky;
+			top: 24px;
+			z-index: 5;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			gap: 12px;
+			padding: 14px 16px;
+			border-radius: 18px;
+			background: rgba(255, 255, 255, 0.82);
+			backdrop-filter: blur(12px);
+			border: 1px solid rgba(255, 255, 255, 0.38);
+			box-shadow: 0 14px 32px rgba(15, 58, 40, 0.1);
+		}
+
+		.topbar-actions {
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+		}
+
+		.nav-toggle {
+			height: 42px;
+			padding: 0 16px;
+			border-radius: 12px;
+			border: 1px solid #c8ded2;
+			background: #fff;
+			color: var(--primary-dark);
+			font-weight: 800;
+			cursor: pointer;
+		}
+
+		.hero {
+			background: linear-gradient(140deg, rgba(10, 96, 64, 0.96), rgba(7, 63, 43, 0.96));
+			border-radius: 24px;
+			padding: 28px 30px;
+			color: #f6fff9;
+			box-shadow: 0 22px 45px rgba(7, 51, 35, 0.2);
+		}
+
+		h1 {
+			margin: 0 0 8px;
+			font-size: clamp(2rem, 3vw, 2.7rem);
+		}
+
+		.hero p {
+			margin: 0;
+			color: rgba(246, 255, 249, 0.82);
+			line-height: 1.6;
+		}
+
+		.panel {
+			background: var(--panel);
+			border: 1px solid rgba(255, 255, 255, 0.38);
+			border-radius: 22px;
+			padding: 22px;
+			backdrop-filter: blur(12px);
+			box-shadow: 0 16px 38px rgba(15, 58, 40, 0.1);
+		}
+
+		.toolbar {
+			display: grid;
+			grid-template-columns: 1fr auto;
+			gap: 16px;
+			align-items: end;
+		}
+
+		.filters {
+			display: grid;
+			grid-template-columns: repeat(5, minmax(130px, 1fr));
+			gap: 14px;
+		}
+
+		.field {
+			display: grid;
+			gap: 7px;
+		}
+
+		.field label {
+			font-size: 0.9rem;
+			font-weight: 700;
+			color: var(--muted);
+		}
+
+		input, select {
+			height: 44px;
+			border: 1px solid #c8ded2;
+			border-radius: 12px;
+			padding: 0 12px;
+			font-size: 0.95rem;
+			background: #fff;
+		}
+
+		.actions {
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+		}
+
+		.btn {
+			height: 44px;
+			padding: 0 18px;
+			border: 0;
+			border-radius: 12px;
+			font-weight: 800;
+			cursor: pointer;
+			display: inline-flex;
+			align-items: center;
+		}
+
+		.btn-primary {
+			color: #fff;
+			background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+		}
+
+		.btn-secondary {
+			color: var(--primary-dark);
+			background: rgba(13, 125, 82, 0.1);
+		}
+
+		.helper {
+			margin-top: 12px;
+			font-size: 0.9rem;
+			color: var(--muted);
+		}
+
+		.table-wrap {
+			overflow: auto;
+			border: 1px solid var(--line);
+			border-radius: 18px;
+			background: var(--panel-strong);
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			min-width: 1240px;
+		}
+
+		thead th {
+			position: sticky;
+			top: 0;
+			background: #f2faf5;
+			z-index: 1;
+			font-size: 0.9rem;
+			font-weight: 800;
+			color: #315045;
+		}
+
+		th, td {
+			padding: 13px 12px;
+			border-bottom: 1px solid #ebf3ee;
+			text-align: left;
+			vertical-align: middle;
+		}
+
+		.action-chip {
+			display: inline-block;
+			padding: 6px 10px;
+			border-radius: 999px;
+			font-size: 0.83rem;
+			font-weight: 800;
+			color: #fff;
+		}
+
+		.action-chip.earn {
+			background: var(--earn);
+		}
+
+		.action-chip.deduct {
+			background: var(--deduct);
+		}
+
+		.number {
+			text-align: right;
+			font-variant-numeric: tabular-nums;
+		}
+
+		.empty {
+			padding: 30px;
+			text-align: center;
+			color: var(--muted);
+		}
+
+		@media (max-width: 1180px) {
+			.layout {
+				grid-template-columns: 1fr;
+			}
+
+			.sidebar {
+				position: static;
+			}
+		}
+
+		@media (max-width: 1080px) {
+			.toolbar {
+				grid-template-columns: 1fr;
+			}
+
+			.filters {
+				grid-template-columns: 1fr;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="layout">
+		<aside class="sidebar">
+			<span class="sidebar-badge">ADMIN CONSOLE</span>
+			<h2>운영 메뉴</h2>
+			<p>관리자 화면에서 회원 마일리지와 변경내역을 한 번에 관리합니다.</p>
+			<nav class="menu">
+				<a href="/admin/mileage">회원 마일리지 관리</a>
+				<a class="active" href="/admin/mileage/history">마일리지 변경내역</a>
+				<a href="/admin/members">회원명단 관리</a>
+				<a href="/admin/attendance">정모 출석 조회</a>
+				<a href="/admin/jeongmos">정모 관리</a>
+			</nav>
+			<form class="logout-form" method="post" action="/admin/logout">
+				<button type="submit">로그아웃</button>
+			</form>
+		</aside>
+
+		<main class="content">
+			<section class="topbar">
+				<button id="navToggleButton" type="button" class="nav-toggle">메뉴 접기</button>
+				<div class="topbar-actions">
+					<button id="searchButton" type="button" class="btn btn-primary">조회 (F4)</button>
+				</div>
+			</section>
+
+			<section class="hero">
+				<h1>마일리지 변경내역</h1>
+				<p>회원별 적립과 차감 이력을 최신순으로 확인하고 기간, ID, 적립/차감 조건으로 빠르게 추적할 수 있습니다.</p>
+			</section>
+
+			<section class="panel">
+				<form method="get" action="/admin/mileage/history" class="toolbar">
+					<div class="filters">
+						<div class="field">
+							<label for="name">회원명</label>
+							<input id="name" name="name" type="text" th:value="${searchName}" placeholder="예: 조준혁">
+						</div>
+						<div class="field">
+							<label for="memberId">고유 ID</label>
+							<input id="memberId" name="memberId" type="text" th:value="${searchMemberId}" placeholder="예: U0001">
+						</div>
+						<div class="field">
+							<label for="actionType">변경구분</label>
+							<select id="actionType" name="actionType">
+								<option value="">전체</option>
+								<option value="EARN" th:selected="${searchActionType == 'EARN'}">적립</option>
+								<option value="DEDUCT" th:selected="${searchActionType == 'DEDUCT'}">차감</option>
+							</select>
+						</div>
+						<div class="field">
+							<label for="fromDate">시작일</label>
+							<input id="fromDate" name="fromDate" type="date" th:value="${searchFromDate}">
+						</div>
+						<div class="field">
+							<label for="toDate">종료일</label>
+							<input id="toDate" name="toDate" type="date" th:value="${searchToDate}">
+						</div>
+					</div>
+					<div class="actions">
+						<a href="/admin/mileage/history" class="btn btn-secondary">필터 초기화</a>
+					</div>
+				</form>
+				<p class="helper">최근 변경내역이 먼저 보이며, 회원명과 고유 ID를 부분검색할 수 있습니다.</p>
+			</section>
+
+			<section class="panel">
+				<div class="table-wrap" th:if="${!#lists.isEmpty(histories)}">
+					<table>
+						<thead>
+							<tr>
+								<th>변경시각</th>
+								<th>회원명</th>
+								<th>고유 ID</th>
+								<th>변경구분</th>
+								<th>카테고리</th>
+								<th>점수</th>
+								<th>변경 전</th>
+								<th>변경 후</th>
+								<th>상세사유</th>
+								<th>처리자</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="history : ${histories}">
+								<td th:text="${#temporals.format(history.regDtm, 'yyyy-MM-dd HH:mm:ss')}">2026-06-27 10:30:00</td>
+								<td th:text="${history.memberName}">홍길동</td>
+								<td th:text="${history.memberId}">U0001</td>
+								<td>
+									<span class="action-chip"
+										  th:classappend="${history.actionType == 'EARN'} ? ' earn' : ' deduct'"
+										  th:text="${history.actionType == 'EARN'} ? '적립' : '차감'">적립</span>
+								</td>
+								<td th:text="${history.category}">기타100</td>
+								<td class="number" th:text="${history.points}">100</td>
+								<td class="number" th:text="${history.beforeMileage}">50</td>
+								<td class="number" th:text="${history.afterMileage}">150</td>
+								<td th:text="${history.detailReason == null || history.detailReason.isBlank() ? '-' : history.detailReason}">지인가입</td>
+								<td th:text="${history.createdBy}">admin</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="empty" th:if="${#lists.isEmpty(histories)}">조회된 변경내역이 없습니다. 검색조건을 바꾸거나 마일리지 변경을 먼저 저장해 주세요.</div>
+			</section>
+		</main>
+	</div>
+	<script>
+		const navToggleButton = document.getElementById("navToggleButton");
+		const searchButton = document.getElementById("searchButton");
+		const searchForm = document.querySelector("form[action='/admin/mileage/history']");
+
+		function syncSidebarToggleLabel() {
+			navToggleButton.textContent = document.body.classList.contains("sidebar-hidden") ? "메뉴 열기" : "메뉴 접기";
+		}
+
+		if (window.localStorage.getItem("adminSidebarHidden") === "true") {
+			document.body.classList.add("sidebar-hidden");
+		}
+		syncSidebarToggleLabel();
+
+		navToggleButton?.addEventListener("click", () => {
+			document.body.classList.toggle("sidebar-hidden");
+			window.localStorage.setItem("adminSidebarHidden", String(document.body.classList.contains("sidebar-hidden")));
+			syncSidebarToggleLabel();
+		});
+
+		searchButton?.addEventListener("click", () => {
+			searchForm?.requestSubmit();
+		});
+
+		document.addEventListener("keydown", (event) => {
+			if (event.key === "F4") {
+				event.preventDefault();
+				searchButton?.click();
+			}
+		});
+	</script>
+</body>
+</html>

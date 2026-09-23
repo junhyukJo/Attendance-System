@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.attendance.system.admin.mapper.JeongmoRequiredMemberMapper">
+
+    <select id="findMembersByJeongmoId" parameterType="string" resultType="com.attendance.system.admin.domain.Member">
+        SELECT
+            m.member_id AS member_id,
+            m.name,
+            m.active,
+            m.birth_date,
+            m.grade,
+            m.warn,
+            m.mileage_score,
+            m.reg_dtm,
+            m.chg_dtm
+        FROM jeongmo_required_members r
+        JOIN members m ON m.member_id = r.member_id
+        WHERE r.jeongmo_id = #{jeongmoId}
+        ORDER BY m.name ASC, m.member_id ASC
+    </select>
+
+    <insert id="insertIfAbsent">
+        INSERT INTO jeongmo_required_members (jeongmo_id, member_id)
+        SELECT #{jeongmoId}, #{memberId}
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM jeongmo_required_members
+            WHERE jeongmo_id = #{jeongmoId}
+              AND member_id = #{memberId}
+        )
+    </insert>
+
+    <delete id="deleteByMemberIds">
+        DELETE FROM jeongmo_required_members
+        WHERE jeongmo_id = #{jeongmoId}
+          AND member_id IN
+          <foreach collection="memberIds" item="memberId" open="(" separator="," close=")">
+              #{memberId}
+          </foreach>
+    </delete>
+
+    <delete id="deleteByJeongmoId" parameterType="string">
+        DELETE FROM jeongmo_required_members
+        WHERE jeongmo_id = #{jeongmoId}
+    </delete>
+
+</mapper>

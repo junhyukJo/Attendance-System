@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>마일리지 관리</title>
+	<title>회원명단 관리</title>
 	<style>
 		:root {
 			--page-top: #eef8f2;
@@ -13,7 +13,6 @@
 			--line: #d8e8df;
 			--primary: #0d7d52;
 			--primary-dark: #095c3c;
-			--accent: #f29f05;
 			--muted: #5f766c;
 			--text: #152821;
 			--blue: #1664d3;
@@ -110,10 +109,6 @@
 			color: var(--sidebar-active);
 		}
 
-		.menu a:hover {
-			background: rgba(255, 255, 255, 0.08);
-		}
-
 		.logout-form {
 			margin: 0;
 		}
@@ -132,6 +127,7 @@
 		.content {
 			display: grid;
 			gap: 20px;
+			min-width: 0;
 		}
 
 		.topbar {
@@ -193,6 +189,7 @@
 			padding: 22px;
 			backdrop-filter: blur(12px);
 			box-shadow: 0 16px 38px rgba(15, 58, 40, 0.1);
+			min-width: 0;
 		}
 
 		.toolbar {
@@ -267,17 +264,27 @@
 			color: var(--muted);
 		}
 
+		.create-grid {
+			display: grid;
+			grid-template-columns: repeat(6, minmax(0, 1fr));
+			gap: 14px;
+			align-items: end;
+			min-width: 0;
+		}
+
 		.table-wrap {
 			overflow: auto;
 			border: 1px solid var(--line);
 			border-radius: 18px;
 			background: var(--panel-strong);
+			width: 100%;
+			max-width: 100%;
 		}
 
 		table {
 			width: 100%;
 			border-collapse: collapse;
-			min-width: 1380px;
+			min-width: 1500px;
 		}
 
 		thead th {
@@ -291,7 +298,7 @@
 		}
 
 		th, td {
-			padding: 13px 12px;
+			padding: 12px;
 			border-bottom: 1px solid #ebf3ee;
 			text-align: left;
 			vertical-align: middle;
@@ -332,76 +339,10 @@
 			font-size: 0.92rem;
 		}
 
-		.points-input {
-			text-align: right;
-		}
-
 		.empty {
 			padding: 30px;
 			text-align: center;
 			color: var(--muted);
-		}
-
-		.modal-backdrop {
-			position: fixed;
-			inset: 0;
-			background: rgba(8, 30, 22, 0.45);
-			display: none;
-			align-items: center;
-			justify-content: center;
-			padding: 20px;
-		}
-
-		.modal-backdrop.open {
-			display: flex;
-		}
-
-		.modal {
-			width: min(420px, 100%);
-			background: #fff;
-			border-radius: 20px;
-			padding: 24px;
-			box-shadow: 0 24px 40px rgba(8, 33, 23, 0.24);
-		}
-
-		.modal h2 {
-			margin: 0 0 10px;
-			font-size: 1.35rem;
-		}
-
-		.modal p {
-			margin: 0 0 18px;
-			color: var(--muted);
-			line-height: 1.55;
-		}
-
-		.modal-actions {
-			display: flex;
-			justify-content: flex-end;
-			gap: 10px;
-		}
-
-		.modal-actions button {
-			height: 42px;
-			padding: 0 16px;
-			border-radius: 12px;
-			border: 0;
-			font-weight: 800;
-			cursor: pointer;
-		}
-
-		.modal-cancel {
-			background: #edf5f0;
-			color: #345246;
-		}
-
-		.modal-confirm {
-			background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-			color: #fff;
-		}
-
-		.modal-confirm.is-danger {
-			background: linear-gradient(135deg, var(--danger), var(--danger-dark));
 		}
 
 		@media (max-width: 1180px) {
@@ -419,7 +360,7 @@
 				grid-template-columns: 1fr;
 			}
 
-			.filters {
+			.filters, .create-grid {
 				grid-template-columns: 1fr;
 			}
 		}
@@ -430,11 +371,11 @@
 		<aside class="sidebar">
 			<span class="sidebar-badge">ADMIN CONSOLE</span>
 			<h2>운영 메뉴</h2>
-			<p>관리자 화면에서 회원 마일리지와 변경내역을 한 번에 관리합니다.</p>
+			<p>회원명단을 직접 관리하고 마일리지 운영 화면과 같은 회원 기준을 유지합니다.</p>
 			<nav class="menu">
-				<a class="active" href="/admin/mileage">회원 마일리지 관리</a>
+				<a href="/admin/mileage">회원 마일리지 관리</a>
 				<a href="/admin/mileage/history">마일리지 변경내역</a>
-				<a href="/admin/members">회원명단 관리</a>
+				<a class="active" href="/admin/members">회원명단 관리</a>
 				<a href="/admin/attendance">정모 출석 조회</a>
 				<a href="/admin/jeongmos">정모 관리</a>
 			</nav>
@@ -452,24 +393,24 @@
 			</section>
 
 			<section class="hero">
-				<h1>회원 마일리지 관리</h1>
-				<p>관리자가 회원별 마일리지 적립과 차감을 한 화면에서 조회하고 저장할 수 있는 운영 콘솔입니다.</p>
+				<h1>회원명단 관리</h1>
+				<p>회원 추가 시 고유 ID가 자동 생성되며, 여기서 수정한 정보는 마일리지 관리 화면에도 같은 회원 데이터로 반영됩니다.</p>
 			</section>
 
 			<section class="panel">
-				<form id="searchForm" method="get" action="/admin/mileage" class="toolbar">
+				<form id="searchForm" method="get" action="/admin/members" class="toolbar">
 					<div class="filters">
 						<div class="field">
-							<label for="name">회원명</label>
-							<input id="name" name="name" type="text" th:value="${searchName}" placeholder="예: 조준혁">
+							<label for="searchName">회원명</label>
+							<input id="searchName" name="name" type="text" th:value="${searchName}" placeholder="예: 조준혁">
 						</div>
 						<div class="field">
-							<label for="memberId">고유 ID</label>
-							<input id="memberId" name="memberId" type="text" th:value="${searchMemberId}" placeholder="예: U0001">
+							<label for="searchMemberId">고유 ID</label>
+							<input id="searchMemberId" name="memberId" type="text" th:value="${searchMemberId}" placeholder="예: U0001">
 						</div>
 						<div class="field">
-							<label for="grade">급수</label>
-							<input id="grade" name="grade" type="text" th:value="${searchGrade}" placeholder="예: 구A">
+							<label for="searchGrade">급수</label>
+							<input id="searchGrade" name="grade" type="text" th:value="${searchGrade}" placeholder="예: 구A">
 						</div>
 					</div>
 					<div class="actions">
@@ -477,7 +418,44 @@
 						<button id="deleteButton" type="button" class="btn btn-danger">선택 삭제</button>
 					</div>
 				</form>
-				<p class="helper">수정된 행은 좌측 상태 컬럼에 파란색으로 "수정" 표시가 나타납니다. 저장 전에는 실제 데이터가 반영되지 않으며, 체크한 회원은 삭제 버튼으로 일괄 삭제할 수 있습니다.</p>
+				<p class="helper">수정된 행은 좌측 상태 컬럼에 파란색으로 표시됩니다. 삭제는 체크한 회원만 대상으로 처리됩니다.</p>
+			</section>
+
+			<section class="panel">
+				<h2>회원 추가</h2>
+				<div class="create-grid">
+					<div class="field">
+						<label for="newName">회원명</label>
+						<input id="newName" type="text" placeholder="예: 홍길동">
+					</div>
+					<div class="field">
+						<label for="newActive">활성여부</label>
+						<select id="newActive">
+							<option value="true">활성</option>
+							<option value="false">비활성</option>
+						</select>
+					</div>
+					<div class="field">
+						<label for="newBirthDate">생년월일</label>
+						<input id="newBirthDate" type="date">
+					</div>
+					<div class="field">
+						<label for="newGrade">급수</label>
+						<input id="newGrade" type="text" placeholder="예: 구A">
+					</div>
+					<div class="field">
+						<label for="newWarn">경고횟수</label>
+						<input id="newWarn" type="number" min="0" step="0.1" placeholder="0.0">
+					</div>
+					<div class="field">
+						<label for="newMileageScore">마일리지</label>
+						<input id="newMileageScore" type="number" min="0" step="1" placeholder="0">
+					</div>
+				</div>
+				<div class="actions" style="margin-top: 14px;">
+					<button id="createMemberButton" type="button" class="btn btn-primary">회원 추가</button>
+				</div>
+				<p class="helper">회원 추가 시 고유 ID는 자동으로 생성됩니다.</p>
 			</section>
 
 			<section class="panel">
@@ -487,78 +465,53 @@
 							<tr>
 								<th class="checkbox-cell"><input id="selectAllCheckbox" type="checkbox" aria-label="전체 선택"></th>
 								<th>상태</th>
-								<th>회원명</th>
 								<th>고유 ID</th>
+								<th>회원명</th>
+								<th>활성여부</th>
 								<th>생년월일</th>
 								<th>급수</th>
 								<th>경고횟수</th>
 								<th>마일리지</th>
-								<th>변경구분</th>
-								<th>카테고리</th>
-								<th>점수</th>
-								<th>상세사유</th>
+								<th>등록일시</th>
+								<th>수정일시</th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr th:each="member : ${members}" th:attr="data-member-id=${member.memberId}">
 								<td class="checkbox-cell"><input class="row-checkbox" type="checkbox" aria-label="행 선택"></td>
 								<td><span class="status-chip">수정</span></td>
-								<td th:text="${member.name}">홍길동</td>
 								<td th:text="${member.memberId}">U0001</td>
-								<td th:text="${member.birthDate}">1990-01-01</td>
-								<td th:text="${member.grade}">구A</td>
-								<td th:text="${member.warn}">0.0</td>
-								<td th:text="${member.mileageScore}">120</td>
+								<td><input class="edit-field member-name" type="text" th:value="${member.name}"></td>
 								<td>
-									<select class="edit-field action-type" data-field="actionType">
-										<option value="">선택</option>
-										<option value="EARN">적립</option>
-										<option value="DEDUCT">차감</option>
+									<select class="edit-field member-active">
+										<option value="true" th:selected="${member.active}">활성</option>
+										<option value="false" th:selected="${member.active == false}">비활성</option>
 									</select>
 								</td>
-								<td>
-									<input class="edit-field category" data-field="category" type="text" maxlength="100" placeholder="예: 기타100">
-								</td>
-								<td>
-									<input class="edit-field points-input points" data-field="points" type="number" min="1" step="1" placeholder="0">
-								</td>
-								<td>
-									<input class="edit-field detail-reason" data-field="detailReason" type="text" maxlength="255" placeholder="예: 지인가입">
-								</td>
+								<td><input class="edit-field member-birth-date" type="date" th:value="${member.birthDate}"></td>
+								<td><input class="edit-field member-grade" type="text" th:value="${member.grade}"></td>
+								<td><input class="edit-field member-warn" type="number" min="0" step="0.1" th:value="${member.warn}"></td>
+								<td><input class="edit-field member-mileage-score" type="number" min="0" step="1" th:value="${member.mileageScore}"></td>
+								<td th:text="${#temporals.format(member.regDtm, 'yyyy-MM-dd HH:mm:ss')}">2026-06-27 10:00:00</td>
+								<td th:text="${#temporals.format(member.chgDtm, 'yyyy-MM-dd HH:mm:ss')}">2026-06-27 10:00:00</td>
 							</tr>
 						</tbody>
 					</table>
 				</div>
-				<div class="empty" th:if="${#lists.isEmpty(members)}">조회된 회원이 없습니다. 검색조건을 바꾸거나 회원 데이터를 먼저 등록해 주세요.</div>
+				<div class="empty" th:if="${#lists.isEmpty(members)}">등록된 회원이 없습니다. 위에서 회원을 추가해 주세요.</div>
 			</section>
 		</main>
 	</div>
 
-	<div id="confirmModal" class="modal-backdrop" aria-hidden="true">
-		<div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-			<h2 id="modalTitle">변경사항 저장</h2>
-			<p id="modalMessage">선택한 회원들의 마일리지 변경사항을 저장하시겠습니까? 확인을 누른 경우에만 실제 데이터가 반영됩니다.</p>
-			<div class="modal-actions">
-				<button id="cancelModalButton" type="button" class="modal-cancel">취소</button>
-				<button id="confirmModalButton" type="button" class="modal-confirm">확인</button>
-			</div>
-		</div>
-	</div>
-
 	<script>
-		const modal = document.getElementById("confirmModal");
-		const modalTitle = document.getElementById("modalTitle");
-		const modalMessage = document.getElementById("modalMessage");
 		const navToggleButton = document.getElementById("navToggleButton");
+		const searchButton = document.getElementById("searchButton");
+		const searchForm = document.getElementById("searchForm");
 		const saveButton = document.getElementById("saveButton");
 		const deleteButton = document.getElementById("deleteButton");
-		const searchButton = document.getElementById("searchButton");
-		const confirmModalButton = document.getElementById("confirmModalButton");
-		const cancelModalButton = document.getElementById("cancelModalButton");
+		const createMemberButton = document.getElementById("createMemberButton");
 		const selectAllCheckbox = document.getElementById("selectAllCheckbox");
-		const searchForm = document.getElementById("searchForm");
 		const rows = Array.from(document.querySelectorAll("tbody tr"));
-		let pendingAction = null;
 
 		function syncSidebarToggleLabel() {
 			navToggleButton.textContent = document.body.classList.contains("sidebar-hidden") ? "메뉴 열기" : "메뉴 접기";
@@ -575,15 +528,23 @@
 			syncSidebarToggleLabel();
 		});
 
+		searchButton?.addEventListener("click", () => {
+			searchForm?.requestSubmit();
+		});
+
 		function updateRowState(row) {
 			const fields = row.querySelectorAll(".edit-field");
-			const modified = Array.from(fields).some((field) => field.value.trim() !== "");
+			const modified = Array.from(fields).some((field) => {
+				const initialValue = field.dataset.initialValue ?? "";
+				return field.value !== initialValue;
+			});
 			row.classList.toggle("modified", modified);
 			row.querySelector(".status-chip").classList.toggle("is-modified", modified);
 		}
 
 		rows.forEach((row) => {
 			row.querySelectorAll(".edit-field").forEach((field) => {
+				field.dataset.initialValue = field.value;
 				field.addEventListener("input", () => updateRowState(row));
 				field.addEventListener("change", () => updateRowState(row));
 			});
@@ -604,45 +565,22 @@
 			});
 		});
 
-		function getModifiedChanges() {
+		function collectMemberPayload(row) {
+			return {
+				memberId: row.dataset.memberId,
+				name: row.querySelector(".member-name").value.trim(),
+				active: row.querySelector(".member-active").value === "true",
+				birthDate: row.querySelector(".member-birth-date").value || null,
+				grade: row.querySelector(".member-grade").value.trim(),
+				warn: row.querySelector(".member-warn").value ? Number(row.querySelector(".member-warn").value) : null,
+				mileageScore: row.querySelector(".member-mileage-score").value ? Number(row.querySelector(".member-mileage-score").value) : 0
+			};
+		}
+
+		function getModifiedMembers() {
 			return rows
-				.map((row) => {
-					const actionType = row.querySelector(".action-type").value.trim();
-					const category = row.querySelector(".category").value.trim();
-					const points = row.querySelector(".points").value.trim();
-					const detailReason = row.querySelector(".detail-reason").value.trim();
-					if (!actionType && !category && !points && !detailReason) {
-						return null;
-					}
-					return {
-						memberId: row.dataset.memberId,
-						actionType,
-						category,
-						points: points ? Number(points) : null,
-						detailReason
-					};
-				})
-				.filter((change) => change !== null);
-		}
-
-		function openModal() {
-			modal.classList.add("open");
-			modal.setAttribute("aria-hidden", "false");
-		}
-
-		function closeModal() {
-			modal.classList.remove("open");
-			modal.setAttribute("aria-hidden", "true");
-			pendingAction = null;
-			confirmModalButton.classList.remove("is-danger");
-		}
-
-		function openConfirmModal(title, message, action, isDanger) {
-			modalTitle.textContent = title;
-			modalMessage.textContent = message;
-			pendingAction = action;
-			confirmModalButton.classList.toggle("is-danger", isDanger);
-			openModal();
+				.filter((row) => row.classList.contains("modified"))
+				.map((row) => collectMemberPayload(row));
 		}
 
 		function getSelectedMemberIds() {
@@ -651,99 +589,70 @@
 				.map((row) => row.dataset.memberId);
 		}
 
-		saveButton?.addEventListener("click", () => {
-			const changes = getModifiedChanges();
-			if (changes.length === 0) {
+		async function sendRequest(url, payload) {
+			const response = await fetch(url, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload)
+			});
+			const result = await response.json();
+			if (!response.ok) {
+				throw new Error(result.message || "요청 처리 중 오류가 발생했습니다.");
+			}
+			return result;
+		}
+
+		createMemberButton?.addEventListener("click", async () => {
+			try {
+				const result = await sendRequest("/admin/members/create", {
+					name: document.getElementById("newName").value.trim(),
+					active: document.getElementById("newActive").value === "true",
+					birthDate: document.getElementById("newBirthDate").value || null,
+					grade: document.getElementById("newGrade").value.trim(),
+					warn: document.getElementById("newWarn").value ? Number(document.getElementById("newWarn").value) : null,
+					mileageScore: document.getElementById("newMileageScore").value ? Number(document.getElementById("newMileageScore").value) : 0
+				});
+				window.alert(result.message + " 생성된 ID: " + result.memberId);
+				window.location.reload();
+			}
+			catch (error) {
+				window.alert(error.message);
+			}
+		});
+
+		saveButton?.addEventListener("click", async () => {
+			const members = getModifiedMembers();
+			if (members.length === 0) {
 				window.alert("저장할 변경사항이 없습니다.");
 				return;
 			}
-			openConfirmModal(
-				"변경사항 저장",
-				"선택한 회원들의 마일리지 변경사항을 저장하시겠습니까? 확인을 누른 경우에만 실제 데이터가 반영됩니다.",
-				"save",
-				false
-			);
+			try {
+				const result = await sendRequest("/admin/members/save", { members });
+				window.alert(result.message);
+				window.location.reload();
+			}
+			catch (error) {
+				window.alert(error.message);
+			}
 		});
 
-		deleteButton?.addEventListener("click", () => {
+		deleteButton?.addEventListener("click", async () => {
 			const memberIds = getSelectedMemberIds();
 			if (memberIds.length === 0) {
 				window.alert("삭제할 회원을 선택해 주세요.");
 				return;
 			}
-			openConfirmModal(
-				"회원 삭제",
-				"체크한 회원 정보를 삭제하시겠습니까? 삭제된 회원의 출석 기록과 마일리지 이력도 함께 제거되며, 이 작업은 되돌릴 수 없습니다.",
-				"delete",
-				true
-			);
-		});
-
-		searchButton?.addEventListener("click", () => {
-			searchForm?.requestSubmit();
-		});
-
-		cancelModalButton?.addEventListener("click", closeModal);
-		modal?.addEventListener("click", (event) => {
-			if (event.target === modal) {
-				closeModal();
-			}
-		});
-
-		async function submitSave() {
-			const changes = getModifiedChanges();
-			try {
-				const response = await fetch("/admin/mileage/save", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json"
-					},
-					body: JSON.stringify({ changes })
-				});
-				const payload = await response.json();
-				if (!response.ok) {
-					window.alert(payload.message || "저장 중 오류가 발생했습니다.");
-					return;
-				}
-				window.alert(payload.message || "변경사항이 저장되었습니다.");
-				closeModal();
-				window.location.reload();
-			}
-			catch (error) {
-				window.alert("저장 요청 중 오류가 발생했습니다.");
-			}
-		}
-
-		async function submitDelete() {
-			const memberIds = getSelectedMemberIds();
-			try {
-				const response = await fetch("/admin/mileage/delete", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json"
-					},
-					body: JSON.stringify({ memberIds })
-				});
-				const payload = await response.json();
-				if (!response.ok) {
-					window.alert(payload.message || "삭제 중 오류가 발생했습니다.");
-					return;
-				}
-				window.alert(payload.message || "선택한 회원이 삭제되었습니다.");
-				closeModal();
-				window.location.reload();
-			}
-			catch (error) {
-				window.alert("삭제 요청 중 오류가 발생했습니다.");
-			}
-		}
-
-		confirmModalButton?.addEventListener("click", async () => {
-			if (pendingAction === "delete") {
-				await submitDelete();
+			if (!window.confirm("체크한 회원을 삭제하시겠습니까? 마일리지 이력과 출석 기록도 함께 삭제됩니다.")) {
 				return;
 			}
-			await submitSave();
+			try {
+				const result = await sendRequest("/admin/members/delete", { memberIds });
+				window.alert(result.message);
+				window.location.reload();
+			}
+			catch (error) {
+				window.alert(error.message);
+			}
 		});
 
 		document.addEventListener("keydown", (event) => {
@@ -754,9 +663,6 @@
 			if (event.key === "F4") {
 				event.preventDefault();
 				searchButton?.click();
-			}
-			if (event.key === "Escape" && modal.classList.contains("open")) {
-				closeModal();
 			}
 		});
 	</script>

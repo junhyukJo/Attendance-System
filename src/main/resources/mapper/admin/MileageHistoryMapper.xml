@@ -4,6 +4,41 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.attendance.system.admin.mapper.MileageHistoryMapper">
 
+    <select id="findHistories" parameterType="com.attendance.system.admin.dto.AdminMileageHistorySearchCondition"
+            resultType="com.attendance.system.admin.domain.MileageHistory">
+        SELECT
+            history_id,
+            member_id,
+            member_name,
+            action_type,
+            points,
+            category,
+            detail_reason,
+            before_mileage,
+            after_mileage,
+            created_by,
+            reg_dtm
+        FROM mileage_history
+        <where>
+            <if test="name != null and name != ''">
+                AND UPPER(member_name) LIKE CONCAT('%', UPPER(#{name}), '%')
+            </if>
+            <if test="memberId != null and memberId != ''">
+                AND UPPER(member_id) LIKE CONCAT('%', UPPER(#{memberId}), '%')
+            </if>
+            <if test="actionType != null and actionType != ''">
+                AND action_type = #{actionType}
+            </if>
+            <if test="fromDate != null">
+                AND DATE(reg_dtm) <![CDATA[>=]]> #{fromDate}
+            </if>
+            <if test="toDate != null">
+                AND DATE(reg_dtm) <![CDATA[<=]]> #{toDate}
+            </if>
+        </where>
+        ORDER BY reg_dtm DESC, history_id DESC
+    </select>
+
     <insert id="insert" parameterType="com.attendance.system.admin.domain.MileageHistory">
         INSERT INTO mileage_history (
             history_id,
@@ -31,5 +66,10 @@
             #{regDtm}
         )
     </insert>
+
+    <delete id="deleteByMemberId" parameterType="string">
+        DELETE FROM mileage_history
+        WHERE member_id = #{memberId}
+    </delete>
 
 </mapper>

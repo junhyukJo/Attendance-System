@@ -14,7 +14,15 @@ public interface MemberMapper {
 
 	Member findById(String id);
 
+	Member findByNameAndBirthDate(@Param("name") String name, @Param("birthDate") java.time.LocalDate birthDate);
+
+	List<String> findAllMemberIds();
+
 	int updateMileage(@Param("id") String id, @Param("mileageScore") Integer mileageScore);
 
+	int updateMember(Member member);
+
 	int insert(Member member);
+
+	int deleteById(String id);
 }

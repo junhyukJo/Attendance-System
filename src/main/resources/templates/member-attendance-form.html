@@ -51,6 +51,19 @@
 			line-height: 1.55;
 		}
 
+		.summary {
+			margin-bottom: 18px;
+			padding: 14px 16px;
+			border-radius: 14px;
+			background: #f3fbf6;
+			border: 1px solid var(--line);
+		}
+
+		.summary strong {
+			display: block;
+			margin-bottom: 4px;
+		}
+
 		form {
 			display: grid;
 			gap: 14px;
@@ -91,7 +104,16 @@
 	<main>
 		<h1>출석 정보 입력</h1>
 		<p>본인 정보를 입력한 뒤 출석 등록을 완료하세요.</p>
+		<div class="summary" th:if="${jeongmoDate != null or jeongmoPlace != '' or jeongmoStartTime != null or jeongmoEndTime != null}">
+			<strong>정모 정보</strong>
+			<div th:text="${(jeongmoDate != null ? #temporals.format(jeongmoDate, 'M/d') : '-') + ' ' + (jeongmoStartTime != null ? #temporals.format(jeongmoStartTime, 'HH:mm') : '--:--') + ' - ' + (jeongmoEndTime != null ? #temporals.format(jeongmoEndTime, 'HH:mm') : '--:--') + ', ' + (jeongmoPlace != null && !jeongmoPlace.isBlank() ? jeongmoPlace : '장소 미정')}">6/25 19:00 - 22:00, 강남스포츠문화센터</div>
+		</div>
 		<form method="post" action="/member/attendance">
+			<input name="jeongmoId" type="hidden" th:value="${jeongmoId}">
+			<input name="jeongmoDate" type="hidden" th:value="${jeongmoDate}">
+			<input name="jeongmoStartTime" type="hidden" th:value="${jeongmoStartTime}">
+			<input name="jeongmoEndTime" type="hidden" th:value="${jeongmoEndTime}">
+			<input name="jeongmoPlace" type="hidden" th:value="${jeongmoPlace}">
 			<label for="name">이름</label>
 			<input id="name" name="name" type="text" required maxlength="50" autocomplete="name">
 			<label for="birthDate">생년월일</label>

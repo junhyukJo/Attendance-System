@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>정모 출석 조회</title>
+	<style>
+		:root {
+			--page-top: #eef8f2;
+			--page-bottom: #cfe8da;
+			--panel: rgba(255, 255, 255, 0.94);
+			--panel-strong: #ffffff;
+			--line: #d8e8df;
+			--primary: #0d7d52;
+			--primary-dark: #095c3c;
+			--muted: #5f766c;
+			--text: #152821;
+			--sidebar: rgba(9, 66, 45, 0.92);
+			--sidebar-line: rgba(255, 255, 255, 0.1);
+			--sidebar-text: rgba(245, 255, 249, 0.78);
+			--sidebar-active: #ffffff;
+		}
+
+		* { box-sizing: border-box; }
+
+		body {
+			margin: 0;
+			min-height: 100vh;
+			font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+			color: var(--text);
+			background:
+				radial-gradient(circle at 10% 12%, rgba(242, 159, 5, 0.16), transparent 28%),
+				radial-gradient(circle at 88% 18%, rgba(13, 125, 82, 0.2), transparent 30%),
+				linear-gradient(160deg, var(--page-top), var(--page-bottom));
+			padding: 24px;
+		}
+
+		body.sidebar-hidden .layout {
+			grid-template-columns: 1fr;
+		}
+
+		body.sidebar-hidden .sidebar {
+			display: none;
+		}
+
+		.layout {
+			width: min(1560px, 100%);
+			margin: 0 auto;
+			display: grid;
+			grid-template-columns: 240px minmax(0, 1fr);
+			gap: 20px;
+			align-items: start;
+		}
+
+		.sidebar {
+			position: sticky;
+			top: 24px;
+			background: var(--sidebar);
+			color: #fff;
+			border-radius: 24px;
+			padding: 24px 18px;
+			box-shadow: 0 22px 45px rgba(7, 51, 35, 0.22);
+		}
+
+		.sidebar-badge {
+			display: inline-block;
+			padding: 7px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.12);
+			font-size: 0.8rem;
+			font-weight: 700;
+			letter-spacing: 0.04em;
+		}
+
+		.sidebar h2 {
+			margin: 14px 0 8px;
+			font-size: 1.35rem;
+		}
+
+		.sidebar p {
+			margin: 0 0 18px;
+			color: var(--sidebar-text);
+			font-size: 0.93rem;
+			line-height: 1.6;
+		}
+
+		.menu {
+			display: grid;
+			gap: 8px;
+			margin-bottom: 20px;
+		}
+
+		.menu a {
+			display: block;
+			padding: 12px 14px;
+			border-radius: 14px;
+			color: var(--sidebar-text);
+			text-decoration: none;
+			font-weight: 700;
+			border: 1px solid transparent;
+		}
+
+		.menu a.active {
+			background: rgba(255, 255, 255, 0.14);
+			border-color: var(--sidebar-line);
+			color: var(--sidebar-active);
+		}
+
+		.logout-form {
+			margin: 0;
+		}
+
+		.logout-form button {
+			width: 100%;
+			height: 44px;
+			border-radius: 12px;
+			border: 1px solid rgba(255, 255, 255, 0.18);
+			background: rgba(255, 255, 255, 0.08);
+			color: #fff;
+			font-weight: 700;
+			cursor: pointer;
+		}
+
+		.content {
+			display: grid;
+			gap: 20px;
+			min-width: 0;
+		}
+
+		.topbar {
+			position: sticky;
+			top: 24px;
+			z-index: 5;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			gap: 12px;
+			padding: 14px 16px;
+			border-radius: 18px;
+			background: rgba(255, 255, 255, 0.82);
+			backdrop-filter: blur(12px);
+			border: 1px solid rgba(255, 255, 255, 0.38);
+			box-shadow: 0 14px 32px rgba(15, 58, 40, 0.1);
+		}
+
+		.topbar-actions {
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+		}
+
+		.nav-toggle {
+			height: 42px;
+			padding: 0 16px;
+			border-radius: 12px;
+			border: 1px solid #c8ded2;
+			background: #fff;
+			color: var(--primary-dark);
+			font-weight: 800;
+			cursor: pointer;
+		}
+
+		.btn {
+			height: 44px;
+			padding: 0 18px;
+			border: 0;
+			border-radius: 12px;
+			font-weight: 800;
+			cursor: pointer;
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		.btn-primary {
+			color: #fff;
+			background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+		}
+
+		.btn-secondary {
+			color: var(--primary-dark);
+			background: rgba(13, 125, 82, 0.1);
+		}
+
+		.hero {
+			background: linear-gradient(140deg, rgba(10, 96, 64, 0.96), rgba(7, 63, 43, 0.96));
+			border-radius: 24px;
+			padding: 28px 30px;
+			color: #f6fff9;
+			box-shadow: 0 22px 45px rgba(7, 51, 35, 0.2);
+		}
+
+		h1 {
+			margin: 0 0 8px;
+			font-size: clamp(2rem, 3vw, 2.7rem);
+		}
+
+		.hero p {
+			margin: 0;
+			color: rgba(246, 255, 249, 0.82);
+			line-height: 1.6;
+		}
+
+		.panel {
+			background: var(--panel);
+			border: 1px solid rgba(255, 255, 255, 0.38);
+			border-radius: 22px;
+			padding: 22px;
+			backdrop-filter: blur(12px);
+			box-shadow: 0 16px 38px rgba(15, 58, 40, 0.1);
+			min-width: 0;
+		}
+
+		.toolbar {
+			display: grid;
+			grid-template-columns: 1fr auto;
+			gap: 16px;
+			align-items: end;
+		}
+
+		.filters {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(140px, 1fr));
+			gap: 14px;
+		}
+
+		.field {
+			display: grid;
+			gap: 7px;
+		}
+
+		.field label {
+			font-size: 0.9rem;
+			font-weight: 700;
+			color: var(--muted);
+		}
+
+		input {
+			height: 44px;
+			border: 1px solid #c8ded2;
+			border-radius: 12px;
+			padding: 0 12px;
+			font-size: 0.95rem;
+			background: #fff;
+		}
+
+		.helper {
+			margin-top: 12px;
+			font-size: 0.9rem;
+			color: var(--muted);
+			line-height: 1.6;
+		}
+
+		.meta {
+			display: flex;
+			gap: 12px;
+			flex-wrap: wrap;
+			margin-top: 14px;
+		}
+
+		.meta-card {
+			padding: 10px 14px;
+			border-radius: 14px;
+			background: #f3fbf6;
+			border: 1px solid var(--line);
+			font-weight: 700;
+		}
+
+		.table-wrap {
+			overflow: auto;
+			border: 1px solid var(--line);
+			border-radius: 18px;
+			background: var(--panel-strong);
+			width: 100%;
+			max-width: 100%;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			min-width: 980px;
+		}
+
+		thead th {
+			position: sticky;
+			top: 0;
+			background: #f2faf5;
+			z-index: 1;
+			font-size: 0.9rem;
+			font-weight: 800;
+			color: #315045;
+		}
+
+		th, td {
+			padding: 12px;
+			border-bottom: 1px solid #ebf3ee;
+			text-align: left;
+			vertical-align: middle;
+		}
+
+		.empty {
+			padding: 30px;
+			text-align: center;
+			color: var(--muted);
+		}
+
+		@media (max-width: 1180px) {
+			.layout {
+				grid-template-columns: 1fr;
+			}
+
+			.sidebar {
+				position: static;
+			}
+		}
+
+		@media (max-width: 1080px) {
+			.toolbar {
+				grid-template-columns: 1fr;
+			}
+
+			.filters {
+				grid-template-columns: 1fr;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="layout">
+		<aside class="sidebar">
+			<span class="sidebar-badge">ADMIN CONSOLE</span>
+			<h2>운영 메뉴</h2>
+			<p>정모 기준으로 출석 인원과 출석 시각을 확인하고, 다음 단계 정모 관리 기능의 기반 데이터를 점검합니다.</p>
+			<nav class="menu">
+				<a href="/admin/mileage">회원 마일리지 관리</a>
+				<a href="/admin/mileage/history">마일리지 변경내역</a>
+				<a href="/admin/members">회원명단 관리</a>
+				<a class="active" href="/admin/attendance">정모 출석 조회</a>
+				<a href="/admin/jeongmos">정모 관리</a>
+			</nav>
+			<form class="logout-form" method="post" action="/admin/logout">
+				<button type="submit">로그아웃</button>
+			</form>
+		</aside>
+
+		<main class="content">
+			<section class="topbar">
+				<button id="navToggleButton" type="button" class="nav-toggle">메뉴 접기</button>
+				<div class="topbar-actions">
+					<button id="searchButton" type="button" class="btn btn-secondary">조회 (F4)</button>
+				</div>
+			</section>
+
+			<section class="hero">
+				<h1>정모 출석 조회</h1>
+				<p>정모 날짜, 시간, 장소 조건으로 해당 정모의 출석 인원을 조회하고 출석 처리 시각과 회원 정보를 확인할 수 있습니다.</p>
+			</section>
+
+			<section class="panel">
+				<form id="searchForm" method="get" action="/admin/attendance" class="toolbar">
+					<div class="filters">
+						<div class="field">
+							<label for="jeongmoDate">정모 날짜</label>
+							<input id="jeongmoDate" name="jeongmoDate" type="date" th:value="${searchJeongmoDate}">
+						</div>
+						<div class="field">
+							<label for="jeongmoStartTime">시작 시간</label>
+							<input id="jeongmoStartTime" name="jeongmoStartTime" type="time" th:value="${searchJeongmoStartTime}">
+						</div>
+						<div class="field">
+							<label for="jeongmoEndTime">종료 시간</label>
+							<input id="jeongmoEndTime" name="jeongmoEndTime" type="time" th:value="${searchJeongmoEndTime}">
+						</div>
+						<div class="field">
+							<label for="jeongmoPlace">장소</label>
+							<input id="jeongmoPlace" name="jeongmoPlace" type="text" th:value="${searchJeongmoPlace}" placeholder="예: 강남스포츠문화센터">
+						</div>
+					</div>
+					<div></div>
+				</form>
+				<p class="helper">정모 정보가 붙은 출석 링크로 등록된 출석만 해당 조건에 맞게 조회됩니다. 이후 정모 관리 페이지를 붙이면 이 조건들이 정식 정모 데이터로 연결됩니다.</p>
+				<div class="helper" th:if="${searchJeongmoDate != null or searchJeongmoPlace != '' or searchJeongmoStartTime != null or searchJeongmoEndTime != null}">
+					현재 출석 링크 예시:
+					<span th:text="${attendanceEntryUrlTemplate + '?jeongmoDate=' + (searchJeongmoDate != null ? searchJeongmoDate : '') + '&jeongmoStartTime=' + (searchJeongmoStartTime != null ? searchJeongmoStartTime : '') + '&jeongmoEndTime=' + (searchJeongmoEndTime != null ? searchJeongmoEndTime : '') + '&jeongmoPlace=' + (searchJeongmoPlace != null ? searchJeongmoPlace : '')}">/member/attendance/new?... </span>
+				</div>
+				<div class="meta">
+					<div class="meta-card" th:text="'출석 인원: ' + ${attendanceCount} + '명'">출석 인원: 0명</div>
+				</div>
+			</section>
+
+			<section class="panel">
+				<div class="table-wrap" th:if="${!#lists.isEmpty(attendances)}">
+					<table>
+						<thead>
+							<tr>
+								<th>출석시간</th>
+								<th>회원이름</th>
+								<th>고유 ID</th>
+								<th>생년월일</th>
+								<th>정모 날짜</th>
+								<th>정모 시간</th>
+								<th>장소</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr th:each="attendance : ${attendances}">
+								<td th:text="${#temporals.format(attendance.regDtm, 'yyyy-MM-dd HH:mm:ss')}">2026-06-27 19:05:00</td>
+								<td th:text="${attendance.name}">홍길동</td>
+								<td th:text="${attendance.memberId == null || attendance.memberId.isBlank() ? '-' : attendance.memberId}">U0001</td>
+								<td th:text="${attendance.birthDate}">2000-01-01</td>
+								<td th:text="${attendance.jeongmoDate == null ? '-' : attendance.jeongmoDate}">2026-06-25</td>
+								<td th:text="${(attendance.jeongmoStartTime != null ? #temporals.format(attendance.jeongmoStartTime, 'HH:mm') : '--:--') + ' - ' + (attendance.jeongmoEndTime != null ? #temporals.format(attendance.jeongmoEndTime, 'HH:mm') : '--:--')}">19:00 - 22:00</td>
+								<td th:text="${attendance.jeongmoPlace == null || attendance.jeongmoPlace.isBlank() ? '-' : attendance.jeongmoPlace}">강남스포츠문화센터</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="empty" th:if="${#lists.isEmpty(attendances)}">조회된 출석 내역이 없습니다. 정모 조건을 지정한 뒤 출석 링크로 등록된 인원을 확인해 주세요.</div>
+			</section>
+		</main>
+	</div>
+
+	<script>
+		const navToggleButton = document.getElementById("navToggleButton");
+		const searchButton = document.getElementById("searchButton");
+		const searchForm = document.getElementById("searchForm");
+
+		function syncSidebarToggleLabel() {
+			navToggleButton.textContent = document.body.classList.contains("sidebar-hidden") ? "메뉴 열기" : "메뉴 접기";
+		}
+
+		if (window.localStorage.getItem("adminSidebarHidden") === "true") {
+			document.body.classList.add("sidebar-hidden");
+		}
+		syncSidebarToggleLabel();
+
+		navToggleButton?.addEventListener("click", () => {
+			document.body.classList.toggle("sidebar-hidden");
+			window.localStorage.setItem("adminSidebarHidden", String(document.body.classList.contains("sidebar-hidden")));
+			syncSidebarToggleLabel();
+		});
+
+		searchButton?.addEventListener("click", () => {
+			searchForm?.requestSubmit();
+		});
+
+		document.addEventListener("keydown", (event) => {
+			if (event.key === "F4") {
+				event.preventDefault();
+				searchButton?.click();
+			}
+		});
+	</script>
+</body>
+</html>
